@@ -99,14 +99,27 @@ issue is the only durable record of why the change happened.
 
 ## Install
 
+**As a Claude Code plugin.** Skills are namespaced by the plugin — `intent-to-pr:brainstorm-to-issue`, and so on.
+
 ```
 /plugin marketplace add ismail9k/skills
 /plugin install intent-to-pr@ismail9k
 ```
 
-The skills are then addressed by the plugin name — `intent-to-pr:brainstorm-to-issue`, `intent-to-pr:setup-agent-workflow`, `intent-to-pr:superpowers-issue-bridge`.
+**With the [Skills CLI](https://skills.sh).** Works across Claude Code, Codex, Cursor, Gemini CLI, and others; skills keep their bare names.
 
-To install without the plugin system, copy the skill directories straight across:
+```bash
+npx skills add ismail9k/skills        # all three, into this project
+npx skills add ismail9k/skills -g     # user-level instead
+```
+
+Or take just one:
+
+```bash
+npx skills add https://github.com/ismail9k/skills/tree/main/plugins/intent-to-pr/skills/brainstorm-to-issue
+```
+
+**By hand.**
 
 ```bash
 cp -R plugins/intent-to-pr/skills/* ~/.claude/skills/

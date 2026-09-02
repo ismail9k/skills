@@ -15,7 +15,12 @@
       "author": {
         "name": "Ismail (9K)"
       },
-      "homepage": "https://github.com/ismail9k/skills/tree/main/plugins/intent-to-pr"
+      "homepage": "https://github.com/ismail9k/skills/tree/main/plugins/intent-to-pr",
+      "skills": [
+        "./skills/setup-agent-workflow",
+        "./skills/brainstorm-to-issue",
+        "./skills/superpowers-issue-bridge"
+      ]
     }
   ]
 }
