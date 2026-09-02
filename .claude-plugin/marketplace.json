@@ -1,0 +1,21 @@
+{
+  "name": "ismail9k",
+  "description": "Claude Code plugins by Ismail (9K)",
+  "owner": {
+    "name": "Ismail (9K)",
+    "url": "https://github.com/ismail9k"
+  },
+  "plugins": [
+    {
+      "name": "intent-to-pr",
+      "description": "Capture intent as a tracked issue, then carry it through spec, plan, and pull request without re-deriving it at each step.",
+      "version": "0.1.0",
+      "source": "./plugins/intent-to-pr",
+      "category": "development",
+      "author": {
+        "name": "Ismail (9K)"
+      },
+      "homepage": "https://github.com/ismail9k/skills/tree/main/plugins/intent-to-pr"
+    }
+  ]
+}
