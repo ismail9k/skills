@@ -1,0 +1,25 @@
+{
+  "name": "ismail9k-skills",
+  "version": "0.1.0",
+  "description": "Agent skills for an intent-first workflow: capture intent as a tracked issue, then carry it through spec, plan, and pull request without re-deriving it at each step.",
+  "author": {
+    "name": "Ismail (9K)",
+    "url": "https://github.com/ismail9k"
+  },
+  "homepage": "https://github.com/ismail9k/skills",
+  "repository": "https://github.com/ismail9k/skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "workflow",
+    "github-issues",
+    "specs",
+    "planning",
+    "superpowers"
+  ],
+  "skills": [
+    "./skills/setup-agent-workflow",
+    "./skills/brainstorm-to-issue",
+    "./skills/superpowers-issue-bridge"
+  ]
+}

@@ -29,30 +29,28 @@ There is no build, test, or lint step — the deliverables are Markdown. "Testin
 
 ## Layout convention
 
-This repo is a plugin marketplace. `.claude-plugin/marketplace.json` lists the plugins it offers; each plugin lives under `plugins/<plugin-name>/` with its own `.claude-plugin/plugin.json` and one directory per skill:
+One directory per skill under `skills/`, each holding a `SKILL.md` and whatever assets it ships:
 
 ```
-plugins/intent-to-pr/
-├── .claude-plugin/plugin.json
-└── skills/
-    ├── setup-agent-workflow/     SKILL.md + assets/
-    ├── brainstorm-to-issue/      SKILL.md
-    └── superpowers-issue-bridge/ SKILL.md
+skills/
+├── setup-agent-workflow/     SKILL.md + assets/
+├── brainstorm-to-issue/      SKILL.md
+└── superpowers-issue-bridge/ SKILL.md
 ```
 
-Keep each skill's frontmatter `name:` matching its directory name. The plugin name is the invocation prefix (`intent-to-pr:brainstorm-to-issue`), so renaming the plugin directory or its manifest `name` breaks every existing invocation and every doc that cites one — treat both as fixed.
+Keep each skill's frontmatter `name:` matching its directory name. That name is both how the skill is invoked and how `npx skills add ismail9k/skills@<name>` selects it, so a rename breaks installs and every doc that cites one.
 
-Skills unrelated to this pipeline belong in a new `plugins/<name>/`, not as a fourth skill here. The plugin is the unit of scope; the marketplace is the unit of ownership.
+**Skills here are installed individually**, so each directory must be self-sufficient. Never factor shared content into a file two skills both read — a skill installed on its own arrives with nothing but its own directory. This is why `setup-agent-workflow` carries its templates inside itself as `assets/` rather than at the repo root, and why the three skills reference each other by name only, never by path.
 
-`skills/setup-agent-workflow/assets/AGENTS.md` and `.../assets/CLAUDE.md` are the templates `setup-agent-workflow` writes into a target repo. They are the single source for those two files — [the skill](plugins/intent-to-pr/skills/setup-agent-workflow/SKILL.md) points at them by relative path instead of inlining them, so **edit the assets, not the skill,** when a template changes.
+`skills/setup-agent-workflow/assets/AGENTS.md` and `.../assets/CLAUDE.md` are the templates `setup-agent-workflow` writes into a target repo. They are the single source for those two files — [the skill](skills/setup-agent-workflow/SKILL.md) points at them by relative path instead of inlining them, so **edit the assets, not the skill,** when a template changes.
 
 ## The pipeline these three skills form
 
 The skills are deliberately sequential and each one's doc explicitly disclaims the next one's job. Preserve that separation when editing:
 
-1. **[setup-agent-workflow](plugins/intent-to-pr/skills/setup-agent-workflow/SKILL.md)** — run once per target repo. Writes `AGENTS.md` + a `CLAUDE.md` that only does `@AGENTS.md`, and records the tracker backend (GitHub / local markdown / freeform) in `docs/agents/issue-tracker.md`. Every later skill reads that file rather than guessing a repo.
-2. **[brainstorm-to-issue](plugins/intent-to-pr/skills/brainstorm-to-issue/SKILL.md)** — captures *intent* only, as an intent issue using a fixed five-section body (Problem / Proposed outcome / Affected users and systems / Constraints / Open questions). Deliberately does **not** do spec work (alternatives, out-of-scope, edge cases).
-3. **[superpowers-issue-bridge](plugins/intent-to-pr/skills/superpowers-issue-bridge/SKILL.md)** — feeds that intent issue into Superpowers' own `brainstorming` (→ `spec.md`) and `writing-plans` (→ `plan.md`), and governs how the PR references the issue.
+1. **[setup-agent-workflow](skills/setup-agent-workflow/SKILL.md)** — run once per target repo. Writes `AGENTS.md` + a `CLAUDE.md` that only does `@AGENTS.md`, and records the tracker backend (GitHub / local markdown / freeform) in `docs/agents/issue-tracker.md`. Every later skill reads that file rather than guessing a repo.
+2. **[brainstorm-to-issue](skills/brainstorm-to-issue/SKILL.md)** — captures *intent* only, as an intent issue using a fixed five-section body (Problem / Proposed outcome / Affected users and systems / Constraints / Open questions). Deliberately does **not** do spec work (alternatives, out-of-scope, edge cases).
+3. **[superpowers-issue-bridge](skills/superpowers-issue-bridge/SKILL.md)** — feeds that intent issue into Superpowers' own `brainstorming` (→ `spec.md`) and `writing-plans` (→ `plan.md`), and governs how the PR references the issue.
 
 The two contracts that hold the pipeline together:
 
