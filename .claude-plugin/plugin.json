@@ -21,7 +21,7 @@
     "refactoring"
   ],
   "skills": [
-    "./skills/setup-agent-instructions",
+    "./skills/agent-md-setup",
     "./skills/configure-issue-tracker",
     "./skills/brainstorm-to-issue",
     "./skills/superpowers-issue-bridge",

@@ -71,7 +71,7 @@ with the same values is a no-op.
 ## Connect an existing AGENTS.md
 
 If root-level `AGENTS.md` does not exist, leave it absent. The tracker
-configuration is still usable; recommend `setup-agent-instructions` if the
+configuration is still usable; recommend `agent-md-setup` if the
 user wants shared repository instructions.
 
 If `AGENTS.md` exists, read `assets/AGENTS-sections.md` and show the user the
@@ -102,7 +102,7 @@ Stop without creating an issue or invoking another skill.
 - Don't overwrite a populated tracker configuration without showing the
   differences and receiving confirmation.
 - Don't create `AGENTS.md` or `CLAUDE.md`; that belongs to
-  `setup-agent-instructions`.
+  `agent-md-setup`.
 - Don't replace an existing `AGENTS.md` with a template or rewrite unrelated
   guidance.
 - Don't create intent issues, specs, plans, or pull requests as part of setup.

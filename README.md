@@ -7,7 +7,7 @@ The problem this solves: brainstorming happens in chat, gets summarized into an 
 ## The pipeline
 
 ```
-setup-agent-instructions  (optional, once per repo)
+agent-md-setup            (optional, once per repo)
         │
         ▼
 configure-issue-tracker   (once per repo)
@@ -25,7 +25,7 @@ superpowers-issue-bridge
 
 Each stage is deliberately narrow and disclaims the next one's job.
 
-### `setup-agent-instructions`
+### `agent-md-setup`
 
 Run once when a repository needs one canonical instruction file. It creates
 `AGENTS.md` for shared guidance and a `CLAUDE.md` that imports it. It does not
@@ -172,7 +172,7 @@ Use `.claude/skills/` inside a project instead of `~/.claude/skills/` to scope t
 
 In a repo you haven't set up yet:
 
-> Run the setup-agent-instructions skill
+> Run the agent-md-setup skill
 
 Then configure where intents live:
 
