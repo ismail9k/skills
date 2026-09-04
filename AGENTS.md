@@ -7,7 +7,7 @@ Claude Code reaches it through the `@AGENTS.md` import in `CLAUDE.md`. Repositor
 
 Skill-managed settings live under `docs/agents/` as small, focused files rather than inline here, so each can be read by only the skill that needs it:
 
-- `docs/agents/issue-tracker.md` — where issues/specs/intents live for this repo, and how to reach them (written by the `setup-agent-workflow` skill)
+- `docs/agents/issue-tracker.md` — where issues/specs/intents live for this repo, and how to reach them (written by the `configure-issue-tracker` skill)
 
 As more skills are adopted, each may add its own file here (e.g. triage labels, domain-doc layout). List them as they're added so this stays a table of contents, not a place where config itself accumulates.
 
@@ -23,7 +23,7 @@ As more skills are adopted, each may add its own file here (e.g. triage labels, 
 
 ## What this repo is
 
-A skill-authoring repo, not an application. It contains three Claude Code skills (plus their asset templates) that together define an intent → spec → plan → PR workflow bridging a GitHub issue tracker to the Superpowers skill suite.
+A skill-authoring repo, not an application. `configure-issue-tracker`, `brainstorm-to-issue`, and `superpowers-issue-bridge` define an intent → spec → plan → PR workflow bridging an issue tracker to the Superpowers skill suite. `setup-agent-instructions` is generic repository setup rather than part of that pipeline. `anti-koshary` is also **not part of the pipeline** — it is a standalone two-pass codebase audit that happens to be authored here. Keep it that way: it must not grow a dependency on `docs/agents/issue-tracker.md` or on an intent issue, because the whole point is that it works on any repo, cold.
 
 There is no build, test, or lint step — the deliverables are Markdown. "Testing" a change means installing the skill and running it against a real repo.
 
@@ -33,22 +33,25 @@ One directory per skill under `skills/`, each holding a `SKILL.md` and whatever 
 
 ```
 skills/
-├── setup-agent-workflow/     SKILL.md + assets/
+├── setup-agent-instructions/ SKILL.md + assets/
+├── configure-issue-tracker/  SKILL.md + assets/
 ├── brainstorm-to-issue/      SKILL.md
-└── superpowers-issue-bridge/ SKILL.md
+├── superpowers-issue-bridge/ SKILL.md
+├── fetch-github-issues/      SKILL.md
+└── anti-koshary/             SKILL.md + references/ + scripts/
 ```
 
 Keep each skill's frontmatter `name:` matching its directory name. That name is both how the skill is invoked and how `npx skills add ismail9k/skills@<name>` selects it, so a rename breaks installs and every doc that cites one.
 
-**Skills here are installed individually**, so each directory must be self-sufficient. Never factor shared content into a file two skills both read — a skill installed on its own arrives with nothing but its own directory. This is why `setup-agent-workflow` carries its templates inside itself as `assets/` rather than at the repo root, and why the three skills reference each other by name only, never by path.
+**Skills here are installed individually**, so each directory must be self-sufficient. Never factor shared content into a file two skills both read — a skill installed on its own arrives with nothing but its own directory. Skills reference each other by name only, never by path.
 
-`skills/setup-agent-workflow/assets/AGENTS.md` and `.../assets/CLAUDE.md` are the templates `setup-agent-workflow` writes into a target repo. They are the single source for those two files — [the skill](skills/setup-agent-workflow/SKILL.md) points at them by relative path instead of inlining them, so **edit the assets, not the skill,** when a template changes.
+`skills/setup-agent-instructions/assets/AGENTS.md` and `.../assets/CLAUDE.md` are the complete templates that skill writes into a target repo. `skills/configure-issue-tracker/assets/AGENTS-sections.md` is the source for the tracker and workflow sections its skill may merge into an existing `AGENTS.md`. Edit those assets, not copies in the skill prose, when generated content changes.
 
 ## The pipeline these three skills form
 
-The skills are deliberately sequential and each one's doc explicitly disclaims the next one's job. Preserve that separation when editing:
+The workflow skills are deliberately sequential and each one's doc explicitly disclaims the next one's job. Preserve that separation when editing. `setup-agent-instructions` may run first when shared instruction files are wanted, but tracker configuration does not depend on it.
 
-1. **[setup-agent-workflow](skills/setup-agent-workflow/SKILL.md)** — run once per target repo. Writes `AGENTS.md` + a `CLAUDE.md` that only does `@AGENTS.md`, and records the tracker backend (GitHub / local markdown / freeform) in `docs/agents/issue-tracker.md`. Every later skill reads that file rather than guessing a repo.
+1. **[configure-issue-tracker](skills/configure-issue-tracker/SKILL.md)** — records the tracker backend (GitHub / local markdown / freeform) in `docs/agents/issue-tracker.md`. Later skills read that file rather than guessing a repo.
 2. **[brainstorm-to-issue](skills/brainstorm-to-issue/SKILL.md)** — captures *intent* only, as an intent issue using a fixed five-section body (Problem / Proposed outcome / Affected users and systems / Constraints / Open questions). Deliberately does **not** do spec work (alternatives, out-of-scope, edge cases).
 3. **[superpowers-issue-bridge](skills/superpowers-issue-bridge/SKILL.md)** — feeds that intent issue into Superpowers' own `brainstorming` (→ `spec.md`) and `writing-plans` (→ `plan.md`), and governs how the PR references the issue.
 
@@ -63,6 +66,10 @@ The two contracts that hold the pipeline together:
 - Skills prescribe *asking* rather than defaulting at the ambiguous points — `Closes #N` vs `Relates to #N`, overwriting an existing `AGENTS.md`, which brainstorming stage applies. Don't "simplify" those into silent defaults; the ask is the point.
 - The bridge is intentionally a separate skill from Superpowers' own files so Superpowers updates can't clobber it. Don't propose merging it in.
 - `brainstorm-to-issue` carries a "Non-Claude-Code version (plain prompt)" section for agents without skill discovery. Keep it in sync with the template above it.
+- `anti-koshary` carries one too, condensed from its own body — it started life as a paste-able prompt, and that form stays supported. Keep it in sync with the seven Pass 1 sections.
+- `anti-koshary`'s value lives in `references/` and `scripts/`, not in the SKILL.md prose. The two things models do badly are (a) reporting `.env.example` and test fixtures as leaked secrets, and (b) flagging coincidental duplication as if it were coupling — those are exactly what the reference files exist to prevent, so don't thin them out to save lines.
+- `anti-koshary` is structure-first on purpose: layer collapse and duplication are Pass 1 sections 1–5, security and dependencies are section 7. Models drift toward leading with security because it feels more urgent — don't let the ordering get "corrected" back. The one exception is Pass 2, which fixes a Critical finding first; that is a safety property, not an emphasis one. `references/structural-decay.md` is ordered to match sections 1–5, so reordering one means reordering the other.
+- The regex patterns in `references/security-checks.md` run under `git grep -E` (POSIX ERE), where `\s` and `\b` are **not** supported and fail silently by matching nothing. Use `[[:space:]]` and an explicit `(^|[^[:alnum:]_.])` prefix instead. Any change to those patterns must be tested against a file containing a known hit — a broken pattern looks exactly like a clean repo.
 
 ## Naming
 

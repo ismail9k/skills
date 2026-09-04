@@ -38,7 +38,7 @@ into an issue").
 ## Preconditions
 
 1. Check for `docs/agents/issue-tracker.md`. If it doesn't exist, tell the
-   user to run the `setup-agent-workflow` skill first, and stop — don't
+   user to run the `configure-issue-tracker` skill first, and stop — don't
    guess a tracker or repo.
 2. Read the tracker config from that file:
    - **GitHub backend:** use the `owner/repo` it records. Confirm `gh`

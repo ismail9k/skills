@@ -15,11 +15,17 @@
     "github-issues",
     "specs",
     "planning",
-    "superpowers"
+    "superpowers",
+    "audit",
+    "security",
+    "refactoring"
   ],
   "skills": [
-    "./skills/setup-agent-workflow",
+    "./skills/setup-agent-instructions",
+    "./skills/configure-issue-tracker",
     "./skills/brainstorm-to-issue",
-    "./skills/superpowers-issue-bridge"
+    "./skills/superpowers-issue-bridge",
+    "./skills/fetch-github-issues",
+    "./skills/anti-koshary"
   ]
 }

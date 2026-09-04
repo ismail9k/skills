@@ -1,13 +1,16 @@
 # Intent to PR
 
-Three Claude Code skills that turn a conversation into a tracked GitHub issue, then carry that issue's intent through spec, plan, and pull request without re-deriving it at each step.
+Three workflow skills turn a conversation into a tracked issue, then carry that issue's intent through spec, plan, and pull request without re-deriving it at each step. A separate setup skill establishes shared agent instructions, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with.
 
 The problem this solves: brainstorming happens in chat, gets summarized into an issue, and then the implementation planning starts from a blank page — re-asking questions the issue already answered, and producing artifacts with no link back to where the idea came from. These skills make one issue the reference point every later artifact traces back to.
 
 ## The pipeline
 
 ```
-setup-agent-workflow      (once per repo)
+setup-agent-instructions  (optional, once per repo)
+        │
+        ▼
+configure-issue-tracker   (once per repo)
         │
         ▼
 brainstorm-to-issue  ──▶  intent issue #N
@@ -22,14 +25,27 @@ superpowers-issue-bridge
 
 Each stage is deliberately narrow and disclaims the next one's job.
 
-### `setup-agent-workflow`
+### `setup-agent-instructions`
 
-Run once per repository, before any of the others. It:
+Run once when a repository needs one canonical instruction file. It creates
+`AGENTS.md` for shared guidance and a `CLAUDE.md` that imports it. It does not
+configure an issue tracker or add the intent-to-PR workflow.
 
-- Creates `AGENTS.md` as the canonical instruction file, and a `CLAUDE.md` that does nothing but `@AGENTS.md` — so every coding agent reads the same file and Claude Code still discovers it.
-- Records where issues live for this repo in `docs/agents/issue-tracker.md`: GitHub (`owner/repo`), local markdown under `.scratch/`, or a freeform description of something else (Jira, Linear).
+Existing guidance is never overwritten silently. If `CLAUDE.md` contains real
+content, the skill shows it and asks how to preserve it before making any
+change.
 
-It never overwrites existing content without showing it to you first, and re-running it is safe — it only fills in what's missing.
+### `configure-issue-tracker`
+
+Run before skills that need a durable issue or intent location. It records the
+confirmed backend in `docs/agents/issue-tracker.md`: GitHub (`owner/repo`),
+local markdown under `.scratch/`, or a freeform description of another system
+such as Jira or Linear.
+
+If `AGENTS.md` exists, it can add the tracker pointer and intent-to-PR workflow
+after showing the exact patch. It never creates instruction files or mutates a
+remote tracker during configuration, and re-running it with the same values is
+a no-op.
 
 ### `brainstorm-to-issue`
 
@@ -54,6 +70,38 @@ Connects the intent issue to the [Superpowers](https://github.com/obra/superpowe
 - At PR time, asks once whether the work fully resolves the issue (`Closes #N`) or is partial (`Relates to #N`). It never guesses — an intent issue is often bigger than one PR, and auto-closing it early breaks the audit trail.
 
 It lives as a separate skill rather than as edits to Superpowers' own files, so Superpowers updates can't clobber it.
+
+## `anti-koshary`
+
+Independent of the pipeline above — install it on its own if that's all you want.
+
+A two-pass audit for a codebase that has started to congeal. The name is from
+[koshary code](https://ismail9k.com/blog/koshary-code): rice, pasta and lentils are each
+fine, but once mixed you will never separate them again, and neither will you separate the
+controller from the business rule from the query.
+
+- **Pass 1 reports and changes nothing** — layer collapse, duplication that actually costs
+  money, the functions nobody reads, dead code, health checks, and then security and
+  dependencies last, each finding with a file, a line, a priority, and a named consequence.
+- **Structure is the headline, not security.** Vulnerabilities and CVEs are section 7 of
+  seven; the report leads with what makes the codebase hard to change. A live credential is
+  still Critical and still gets fixed first — that ordering is safety, not emphasis.
+- **Pass 2 fixes only after you approve**, in a safe order: anything critical (saying what
+  behavior changes), then the structural cleanups you picked, then patch/minor dependency
+  bumps, then the remaining security fixes. Major upgrades get flagged, never applied. If a
+  group breaks the build, it reverts that group and stops.
+
+It depends on nothing else — no config file, no issue tracker, no companion skill. Install
+it alone and run it on any repo, cold.
+
+It ships a `dep_audit.sh` that detects the package manager from the lockfile and runs both
+the outdated report and the vulnerability scan across npm/pnpm/yarn/bun, pip/poetry/uv,
+cargo, go, bundler, composer and maven. Two reference files carry the parts models get
+wrong: how to tell duplication that will drift from duplication that is coincidence, and
+which secret-scan hits are false positives.
+
+If the repo has no tests, it says so and refuses to call anything "safe" — "it still
+builds" proves the imports resolve, not that behavior survived.
 
 ## Intent vs. spec
 
@@ -99,11 +147,12 @@ issue is the only durable record of why the change happened.
 
 ## Install
 
-Each skill stands alone — take one, or take all three.
+Each skill stands alone — install all of them or select only the ones you need.
 
 ```bash
-npx skills add ismail9k/skills                      # all three
-npx skills add ismail9k/skills@brainstorm-to-issue  # just one
+npx skills add ismail9k/skills                      # all skills
+npx skills add ismail9k/skills@configure-issue-tracker
+npx skills add ismail9k/skills@anti-koshary         # just one
 npx skills add ismail9k/skills -g                   # user-level, not this project
 ```
 
@@ -123,7 +172,11 @@ Use `.claude/skills/` inside a project instead of `~/.claude/skills/` to scope t
 
 In a repo you haven't set up yet:
 
-> Run the setup-agent-workflow skill
+> Run the setup-agent-instructions skill
+
+Then configure where intents live:
+
+> Run the configure-issue-tracker skill
 
 Then, once you've talked a problem through and it's ready to be tracked:
 
