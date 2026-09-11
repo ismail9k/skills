@@ -175,6 +175,76 @@ A spec file is only written on Superpowers' *architectural* path; spike and
 bounded work produce no spec and no plan document. For that work the intent
 issue is the only durable record of why the change happened.
 
+## Requirements
+
+What to install depends on which skills you use. Every skill assumes `git`.
+
+| Skill | Needs |
+| --- | --- |
+| `agent-md-setup` | Nothing else |
+| `configure-issue-tracker` | Nothing else |
+| `brainstorm-to-issue` | `gh` for a GitHub tracker, or your tracker's own tool |
+| `superpowers-issue-bridge` | Superpowers; `gh` for a GitHub tracker |
+| `fetch-issues` | `gh` for a GitHub tracker, or your tracker's own tool |
+| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues` and `superpowers-issue-bridge` skills installed alongside it |
+| `review-prs` | Superpowers and `gh`; subagents optional — without them it reviews inline |
+| `anti-koshary` | Nothing required; optional audit tools make its dependency scan complete |
+
+### Node.js — for the Skills CLI
+
+`npx skills add` needs [Node.js](https://nodejs.org), which ships `npx`. Skip it if you copy the skills in by hand.
+
+### Superpowers
+
+The workflow skills hand off to [Superpowers](https://github.com/obra/superpowers). Install it separately for each agent you use:
+
+| Agent | Install |
+| --- | --- |
+| Claude Code | `/plugin install superpowers@claude-plugins-official` |
+| Codex CLI | Run `/plugins`, search for `superpowers`, then choose Install Plugin |
+| Codex App | Plugins in the sidebar, then the `+` next to Superpowers |
+| Cursor | `/add-plugin superpowers` in Agent chat |
+| Gemini CLI | `gemini extensions install https://github.com/obra/superpowers` |
+| GitHub Copilot CLI | `copilot plugin marketplace add obra/superpowers-marketplace`, then `copilot plugin install superpowers@superpowers-marketplace` |
+
+Other agents are covered in the [Superpowers installation guide](https://github.com/obra/superpowers#installation).
+
+### GitHub CLI (`gh`)
+
+```bash
+brew install gh     # macOS; for other platforms see https://cli.github.com
+gh auth login
+gh auth status      # must pass before the skills use gh
+```
+
+Needed when your tracker is GitHub, and always for `implement-issues` and `review-prs` — pull requests live on GitHub even when issues live elsewhere.
+
+### Subagents — for `implement-issues` and `review-prs`
+
+Claude Code has them built in. Codex needs them switched on in `~/.codex/config.toml`:
+
+```toml
+[features]
+multi_agent = true
+```
+
+On any other agent, check that it can dispatch subagents before running `implement-issues` — it builds each issue with Superpowers' subagent-driven development.
+
+### Your tracker's tool — for Jira, Linear, and others
+
+Whatever reads and writes your tracker — a CLI or an MCP server — installed and signed in. `configure-issue-tracker` records which one, so the other skills know how to reach it.
+
+### Dependency audit tools — optional, for `anti-koshary`
+
+`dep_audit.sh` uses the built-in audit of `npm`, `pnpm`, `yarn`, `bun`, and `composer`. Other ecosystems need a scanner installed for the vulnerability half of the report; the script skips anything missing and says so.
+
+| Ecosystem | Install |
+| --- | --- |
+| Python | `pip install pip-audit` |
+| Rust | `cargo install cargo-audit cargo-outdated` |
+| Go | `go install golang.org/x/vuln/cmd/govulncheck@latest` |
+| Ruby | `gem install bundler-audit` |
+
 ## Install
 
 Each skill stands alone — install all of them or select only the ones you need.
@@ -196,7 +266,13 @@ cp -R skills/* ~/.claude/skills/
 
 Use `.claude/skills/` inside a project instead of `~/.claude/skills/` to scope them to that repo.
 
-With a GitHub tracker, `brainstorm-to-issue`, the bridge, and `fetch-issues` shell out to the [GitHub CLI](https://cli.github.com), so `gh auth status` needs to pass. Other trackers use whatever tool their tracker config names. `implement-issues` and `review-prs` always need `gh`, because pull requests live on GitHub even when issues live elsewhere.
+Installing `implement-issues` on its own isn't enough — it also needs `fetch-issues` and `superpowers-issue-bridge`:
+
+```bash
+npx skills add ismail9k/skills@implement-issues
+npx skills add ismail9k/skills@fetch-issues
+npx skills add ismail9k/skills@superpowers-issue-bridge
+```
 
 ## Usage
 
