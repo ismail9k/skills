@@ -7,8 +7,8 @@ The problem this solves: brainstorming happens in chat, gets summarized into an 
 ## The pipeline
 
 ```
-agent-md-setup            (optional, once per repo)
-configure-issue-tracker   (once per repo: GitHub, Jira, local markdown, …)
+setup-agent-md            (optional, once per repo)
+setup-issue-tracker       (once per repo: GitHub, Jira, local markdown, …)
 
 Superpowers brainstorming
         │   problem understood — superpowers-issue-bridge asks:
@@ -30,7 +30,7 @@ Superpowers brainstorming
 
 Each stage is deliberately narrow and disclaims the next one's job.
 
-### `agent-md-setup`
+### `setup-agent-md`
 
 Run once when a repository needs one canonical instruction file. It creates
 `AGENTS.md` for shared guidance and a `CLAUDE.md` that imports it. It does not
@@ -40,7 +40,7 @@ Existing guidance is never overwritten silently. If `CLAUDE.md` contains real
 content, the skill shows it and asks how to preserve it before making any
 change.
 
-### `configure-issue-tracker`
+### `setup-issue-tracker`
 
 Run before skills that need a durable issue or intent location. It records the
 confirmed backend in `docs/agents/issue-tracker.md`: GitHub (`owner/repo`),
@@ -181,8 +181,8 @@ What to install depends on which skills you use. Every skill assumes `git`.
 
 | Skill | Needs |
 | --- | --- |
-| `agent-md-setup` | Nothing else |
-| `configure-issue-tracker` | Nothing else |
+| `setup-agent-md` | Nothing else |
+| `setup-issue-tracker` | Nothing else |
 | `brainstorm-to-issue` | `gh` for a GitHub tracker, or your tracker's own tool |
 | `superpowers-issue-bridge` | Superpowers; `gh` for a GitHub tracker |
 | `fetch-issues` | `gh` for a GitHub tracker, or your tracker's own tool |
@@ -232,7 +232,7 @@ On any other agent, check that it can dispatch subagents before running `impleme
 
 ### Your tracker's tool — for Jira, Linear, and others
 
-Whatever reads and writes your tracker — a CLI or an MCP server — installed and signed in. `configure-issue-tracker` records which one, so the other skills know how to reach it.
+Whatever reads and writes your tracker — a CLI or an MCP server — installed and signed in. `setup-issue-tracker` records which one, so the other skills know how to reach it.
 
 ### Dependency audit tools — optional, for `anti-koshary`
 
@@ -251,7 +251,7 @@ Each skill stands alone — install all of them or select only the ones you need
 
 ```bash
 npx skills add ismail9k/skills                      # all skills
-npx skills add ismail9k/skills@configure-issue-tracker
+npx skills add ismail9k/skills@setup-issue-tracker
 npx skills add ismail9k/skills@anti-koshary         # just one
 npx skills add ismail9k/skills -g                   # user-level, not this project
 ```
@@ -278,11 +278,11 @@ npx skills add ismail9k/skills@superpowers-issue-bridge
 
 In a repo you haven't set up yet:
 
-> Run the agent-md-setup skill
+> Run the setup-agent-md skill
 
 Then configure where intents live:
 
-> Run the configure-issue-tracker skill
+> Run the setup-issue-tracker skill
 
 Then brainstorm with Superpowers as usual. Once it understands the problem, the bridge asks:
 

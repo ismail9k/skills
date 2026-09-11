@@ -5,7 +5,7 @@ than inline here, so each can be read by only the skill that needs it:
 
 - `docs/agents/issue-tracker.md` — where issues and intents live for this repo,
   how to read them, and how finished work links back to them (written by the
-  `configure-issue-tracker` skill)
+  `setup-issue-tracker` skill)
 
 As more skills are adopted, each may add its own file under `docs/agents/`.
 List those files here so this section remains a table of contents rather than

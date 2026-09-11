@@ -1,11 +1,11 @@
 ---
-name: configure-issue-tracker
+name: setup-issue-tracker
 description: >
   Use when a repository needs to choose or change where issues and feature
   intents live, or when docs/agents/issue-tracker.md is missing or stale.
 ---
 
-# Configure Issue Tracker
+# Setup Issue Tracker
 
 Record the repository's issue and intent backend — and how later skills read
 its issues and link finished work back to them — in
@@ -97,7 +97,7 @@ values is a no-op.
 ## Connect an existing AGENTS.md
 
 If root-level `AGENTS.md` does not exist, leave it absent. The tracker
-configuration is still usable; recommend `agent-md-setup` if the
+configuration is still usable; recommend `setup-agent-md` if the
 user wants shared repository instructions.
 
 If `AGENTS.md` exists, read `assets/AGENTS-sections.md` and show the user the
@@ -130,7 +130,7 @@ Stop without creating an issue or invoking another skill.
 - Don't overwrite a populated tracker configuration without showing the
   differences and receiving confirmation.
 - Don't create `AGENTS.md` or `CLAUDE.md`; that belongs to
-  `agent-md-setup`.
+  `setup-agent-md`.
 - Don't replace an existing `AGENTS.md` with a template or rewrite unrelated
   guidance.
 - Don't create intent issues, specs, plans, or pull requests as part of setup.

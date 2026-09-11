@@ -1,5 +1,5 @@
 ---
-name: agent-md-setup
+name: setup-agent-md
 description: >
   Use when a repository needs one canonical instruction file shared by coding
   agents, when AGENTS.md or CLAUDE.md is missing, or when their guidance has

@@ -7,7 +7,7 @@ Claude Code reaches it through the `@AGENTS.md` import in `CLAUDE.md`. Repositor
 
 Skill-managed settings live under `docs/agents/` as small, focused files rather than inline here, so each can be read by only the skill that needs it:
 
-- `docs/agents/issue-tracker.md` — where issues and intents live for this repo, how to read them, and how finished work links back to them (written by the `configure-issue-tracker` skill)
+- `docs/agents/issue-tracker.md` — where issues and intents live for this repo, how to read them, and how finished work links back to them (written by the `setup-issue-tracker` skill)
 
 As more skills are adopted, each may add its own file here (e.g. triage labels, domain-doc layout). List them as they're added so this stays a table of contents, not a place where config itself accumulates.
 
@@ -31,15 +31,15 @@ As more skills are adopted, each may add its own file here (e.g. triage labels, 
 
 ## What this repo is
 
-A skill-authoring repo, not an application. `configure-issue-tracker`, `brainstorm-to-issue`, and `superpowers-issue-bridge` bridge an issue tracker to the Superpowers skill suite: a Superpowers brainstorm either builds now or files an intent issue to build later, and the work built from an intent issue carries its reference through spec, plan, and PR, then links back to close it. `implement-issues` and `review-prs` carry that past the issue: agents build tracked issues into PRs, and PRs get reviewed with suggested changes. `agent-md-setup` is generic repository setup rather than part of that pipeline. `anti-koshary` is also **not part of the pipeline** — it is a standalone two-pass codebase audit that happens to be authored here. Keep it that way: it must not grow a dependency on `docs/agents/issue-tracker.md` or on an intent issue, because the whole point is that it works on any repo, cold.
+A skill-authoring repo, not an application. `setup-issue-tracker`, `brainstorm-to-issue`, and `superpowers-issue-bridge` bridge an issue tracker to the Superpowers skill suite: a Superpowers brainstorm either builds now or files an intent issue to build later, and the work built from an intent issue carries its reference through spec, plan, and PR, then links back to close it. `implement-issues` and `review-prs` carry that past the issue: agents build tracked issues into PRs, and PRs get reviewed with suggested changes. `setup-agent-md` is generic repository setup rather than part of that pipeline. `anti-koshary` is also **not part of the pipeline** — it is a standalone two-pass codebase audit that happens to be authored here. Keep it that way: it must not grow a dependency on `docs/agents/issue-tracker.md` or on an intent issue, because the whole point is that it works on any repo, cold.
 
 Eight skills in four groups. Know which group you are editing before you change one:
 
 | Group | Skills | Shares state? |
 | --- | --- | --- |
-| **Pipeline** | `configure-issue-tracker` → `brainstorm-to-issue` → `superpowers-issue-bridge` | Yes — via `docs/agents/issue-tracker.md` and the `Intent-Issue:` header |
+| **Pipeline** | `setup-issue-tracker` → `brainstorm-to-issue` → `superpowers-issue-bridge` | Yes — via `docs/agents/issue-tracker.md` and the `Intent-Issue:` header |
 | **Delivery** | `implement-issues` → `review-prs` | Yes — read `docs/agents/issue-tracker.md`; `implement-issues` builds on `fetch-issues`, the bridge, and Superpowers |
-| **Utility** | `agent-md-setup`, `fetch-issues` | No — each does one job for any repo (`fetch-issues` reads the tracker config when present, but needs nothing else) |
+| **Utility** | `setup-agent-md`, `fetch-issues` | No — each does one job for any repo (`fetch-issues` reads the tracker config when present, but needs nothing else) |
 | **Audit** | `anti-koshary` | No — deliberately depends on nothing |
 
 There is no build or lint step — the deliverables are Markdown. `bash scripts/check.sh` is the test step: it verifies the things that can silently rot here (names, manifest coverage, cross-skill coupling, and whether `anti-koshary`'s regexes still match a planted hit). Beyond that, "testing" a change means installing the skill and running it against a real repo.
@@ -50,8 +50,8 @@ One directory per skill under `skills/`, each holding a `SKILL.md` and whatever 
 
 ```
 skills/
-├── agent-md-setup/           SKILL.md + assets/
-├── configure-issue-tracker/  SKILL.md + assets/
+├── setup-agent-md/           SKILL.md + assets/
+├── setup-issue-tracker/      SKILL.md + assets/
 ├── brainstorm-to-issue/      SKILL.md + assets/
 ├── superpowers-issue-bridge/ SKILL.md
 ├── fetch-issues/             SKILL.md
@@ -66,13 +66,13 @@ This has already gone wrong once: a directory was renamed and the manifest kept 
 
 **Skills here are installed individually**, so each directory must be self-sufficient. Never factor shared content into a file two skills both read — a skill installed on its own arrives with nothing but its own directory. Skills reference each other by name only, never by path.
 
-`skills/agent-md-setup/assets/AGENTS.md` and `.../assets/CLAUDE.md` are the complete templates that skill writes into a target repo. `skills/configure-issue-tracker/assets/AGENTS-sections.md` is the source for the tracker and workflow sections its skill may merge into an existing `AGENTS.md`. `skills/brainstorm-to-issue/assets/intent-issue.md` is the body template for every intent issue. `skills/implement-issues/assets/issue-brief.md` and `.../assets/pr-body.md` are the brief each per-issue agent receives and the body of each pull request it leads to. Edit those assets, not copies in the skill prose, when generated content changes.
+`skills/setup-agent-md/assets/AGENTS.md` and `.../assets/CLAUDE.md` are the complete templates that skill writes into a target repo. `skills/setup-issue-tracker/assets/AGENTS-sections.md` is the source for the tracker and workflow sections its skill may merge into an existing `AGENTS.md`. `skills/brainstorm-to-issue/assets/intent-issue.md` is the body template for every intent issue. `skills/implement-issues/assets/issue-brief.md` and `.../assets/pr-body.md` are the brief each per-issue agent receives and the body of each pull request it leads to. Edit those assets, not copies in the skill prose, when generated content changes.
 
 ## The pipeline these three skills form
 
-The workflow skills are deliberately sequential and each one's doc explicitly disclaims the next one's job. Preserve that separation when editing. `agent-md-setup` may run first when shared instruction files are wanted, but tracker configuration does not depend on it.
+The workflow skills are deliberately sequential and each one's doc explicitly disclaims the next one's job. Preserve that separation when editing. `setup-agent-md` may run first when shared instruction files are wanted, but tracker configuration does not depend on it.
 
-1. **[configure-issue-tracker](skills/configure-issue-tracker/SKILL.md)** — records the tracker backend (GitHub / local markdown / freeform) in `docs/agents/issue-tracker.md`, plus its Reading and Linking conventions: how to list and read issues, and what a PR writes to close or reference one. Later skills read that file rather than guessing a repo or assuming GitHub syntax.
+1. **[setup-issue-tracker](skills/setup-issue-tracker/SKILL.md)** — records the tracker backend (GitHub / local markdown / freeform) in `docs/agents/issue-tracker.md`, plus its Reading and Linking conventions: how to list and read issues, and what a PR writes to close or reference one. Later skills read that file rather than guessing a repo or assuming GitHub syntax.
 2. **[brainstorm-to-issue](skills/brainstorm-to-issue/SKILL.md)** — the track-first ending of a brainstorm. Captures *intent*, as an intent issue using a fixed five-section body (Problem / Proposed outcome / Affected users and systems / Constraints / Open questions). Constraints carries the decisions the user already made — it is the section implementers, including agents that can't ask, treat as binding. Deliberately does **not** do spec work (approaches only considered, edge cases, undecided design).
 3. **[superpowers-issue-bridge](skills/superpowers-issue-bridge/SKILL.md)** — offers build-now / track-first inside Superpowers' `brainstorming`, seeds `brainstorming` from an existing intent issue, carries `Intent-Issue:` into the spec and plan, and links the finished work back through the tracker's Linking convention.
 
