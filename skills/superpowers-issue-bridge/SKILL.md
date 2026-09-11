@@ -1,100 +1,151 @@
 ---
 name: superpowers-issue-bridge
 description: >
-  Connects a GitHub issue (created by brainstorm-to-issue) to Superpowers'
-  brainstorming, writing-plans, and PR-creation stages, so the intent captured
-  in the issue seeds the spec instead of being re-derived from scratch, and
-  every downstream artifact traces back to the issue. Use whenever Superpowers'
-  brainstorming or writing-plans is about to run — including when it is unknown
-  whether an intent issue exists, since establishing that is this skill's first
-  step — or when a PR is being opened for work that started from one.
+  Use whenever Superpowers' brainstorming or writing-plans is about to run —
+  including when it is unknown whether an intent issue exists — and when work
+  that started from an intent issue is being merged or opened as a pull
+  request.
 ---
 
 # Superpowers Issue Bridge
 
-## Relationship to other skills — read this first
+## Where this fits
 
-- `brainstorm-to-issue` produces the intent issue: a short Problem / Proposed
-  outcome / Affected users and systems / Constraints / Open questions
-  write-up. It runs BEFORE any code-focused work starts.
-- Superpowers' own `brainstorming` skill produces the full `spec.md`: a
-  longer interview covering implementation-relevant detail (alternatives
-  considered, what's explicitly out of scope, edge cases) that intent
-  capture doesn't attempt.
-- These are sequential, not competing. If the user says something like
-  "let's brainstorm X" with no intent issue yet and no code context, that's
-  `brainstorm-to-issue` territory. If an intent issue already exists and the
-  user is ready to move to implementation planning, that's Superpowers'
-  `brainstorming`, seeded by this bridge. When it's ambiguous which one
-  applies, ask rather than guessing — don't let one silently absorb the
-  other's job.
+Superpowers' `brainstorming` is the conversation. For work with no intent
+issue yet, it can end two ways, and the user picks:
 
-## Step 1 — Identify the intent issue
+- **Build now** — brainstorming continues as usual: its design, then a plan,
+  code, and a pull request. No issue is involved.
+- **Track first** — `brainstorm-to-issue` files an intent issue, and the
+  session ends there. The issue is built later, by the user or by an agent
+  working from it.
 
-Before invoking Superpowers' `brainstorming`, determine if an intent issue
-exists for this work:
+This bridge owns the moments around that choice: offering it, seeding
+brainstorming from an issue that already exists, tracing the spec and plan
+back to the issue, and linking the finished work to it.
 
-- The user references one directly ("build #42", "let's implement the
-  claims-status issue").
-- The current branch name encodes an issue number (e.g. `42-claims-status`).
-- Ask, if neither is present — don't assume there isn't one just because
-  it wasn't mentioned, and don't guess a number.
+## Before Step 1 — Read the tracker config
 
-If there truly is no intent issue (e.g. a quick fix with no prior intent
-capture), proceed with Superpowers' `brainstorming` unmodified — this
-bridge has nothing to add.
+Read `docs/agents/issue-tracker.md`. Its Backend, Location, Reading, and
+Linking sections say where issues live, how to read one, and what a pull
+request writes to close or reference one.
 
-## Step 2 — Seed brainstorming from the issue
+- **GitHub, without Reading or Linking sections** (a config written before
+  they existed): use GitHub's conventions — `#<number>`, `gh issue view`,
+  `Closes #<number>`, `Relates to #<number>`, `gh issue close`.
+- **Any other backend without them:** ask the user how to read and link its
+  issues.
+- **No config file:** ask where the issue lives rather than assuming this
+  checkout's GitHub repository.
 
-```bash
-gh issue view <number> --json title,body,url
-```
+The examples below use GitHub's syntax; substitute the tracker's own.
 
-Pass the issue's Problem / Proposed outcome / Affected users and systems /
-Constraints / Open questions into the `brainstorming` skill's context as
-already-answered. The interview should:
+## Step 1 — Find the intent issue
 
-- Not re-ask what the issue already states.
-- Still ask what the issue doesn't cover — alternatives, out-of-scope
-  boundaries, technical constraints, edge cases.
-- Explicitly carry forward the issue's "Open questions" section as
-  questions still needing an answer, unless the conversation resolves them.
+- The user references one ("implement #42", "build PROJ-123").
+- The current branch name contains an issue reference (e.g.
+  `feat/42-claims-status`). Confirm it with the user — a number in a branch
+  name isn't always an issue.
+- Otherwise, ask whether one exists. Don't assume there isn't one because it
+  wasn't mentioned, and don't guess a reference.
 
-## Step 3 — Trace the artifact back to the issue
+An issue exists → Step 3. None exists → Step 2.
 
-When `brainstorming` writes `spec.md`, add this to its header (alongside
-whatever front matter Superpowers already writes):
+## Step 2 — No issue yet: offer build now or track first
+
+Let brainstorming run its opening as usual: explore the project, classify the
+work, and ask its clarifying questions about the problem. Once the problem is
+understood — before brainstorming proposes approaches (architectural path) or
+presents its short design (bounded path) — ask, as its own question:
+
+> "Do you want to build this now, or track it as an intent issue first?"
+
+- **Build now** — brainstorming continues unchanged. With no issue, Steps 3–5
+  don't apply.
+- **Track first** — invoke `brainstorm-to-issue` on the conversation so far.
+  Every decision the user has explicitly made goes into the issue's
+  Constraints section. Once the issue exists, the session ends: no spec, no
+  `writing-plans`, no code. The user's choice replaces brainstorming's usual
+  next step.
+
+Skip the question when its answer is already known:
+
+- The user already said which: "just fix it" or "build it now" means build
+  now; "file this" or "track it first" means track first.
+- Brainstorming classified the work as a spike. A spike ends in an answer,
+  not tracked work; the user can file what it found afterwards.
+
+## Step 3 — Seed brainstorming from the issue
+
+Read the issue with the tracker's Reading method — on GitHub,
+`gh issue view <number> --repo <owner/repo> --json title,body,url`.
+
+Pass its Problem / Proposed outcome / Affected users and systems /
+Constraints / Open questions into brainstorming as already answered:
+
+- Don't re-ask what the issue states.
+- Treat Constraints as settled: they hold decisions the user already made.
+  Reopen one only when the user does.
+- Ask what the issue doesn't cover. On the architectural path, that means
+  alternatives, out-of-scope boundaries, and edge cases; on the bounded path,
+  only the questions its short design needs.
+- Carry the Open questions forward as questions still needing an answer,
+  unless the conversation resolves them.
+
+## Step 4 — Trace the spec and plan back to the issue
+
+This step applies to brainstorming's architectural path, the only one that
+writes files. When the spec is written (by default under
+`docs/superpowers/specs/`), add this line directly under its title:
 
 ```markdown
 Intent-Issue: #<number> — <url>
 ```
 
-When `writing-plans` writes `plan.md` from that spec, carry the same line
-forward unchanged. This is what makes `gh issue view <number>` and a repo
-search both lead back to the same thread later.
+When `writing-plans` writes the plan (by default under
+`docs/superpowers/plans/`), carry the same line forward unchanged, directly
+after the plan header's `**Spec:**` line. For a local-markdown intent, the
+file path replaces `#<number> — <url>`.
 
-## Step 4 — Reference the issue in the PR
+The spike and bounded paths write no spec or plan. Don't create one to hold
+this line — the link in Step 5 is the trace.
 
-When Superpowers' `finishing-a-development-branch` or
-`subagent-driven-development` is about to open the PR, ask the user one
-thing: **does this PR fully resolve the intent issue, or is it partial work
-toward it?**
+## Step 5 — Link the finished work back
 
-- Fully resolves it → include `Closes #<number>` in the PR body (GitHub
-  auto-closes the issue on merge).
-- Partial → include `Relates to #<number>` instead (no auto-close; the intent
-  issue stays open for further PRs).
+`finishing-a-development-branch` is where work lands —
+`subagent-driven-development` and `executing-plans` both end there. Once the
+user has picked one of its options, ask once: **does this work fully resolve
+the intent issue, or is it partial?** Then apply the tracker's Linking
+section:
 
-Don't default silently to `Closes` — an intent issue is often bigger than one
-PR, and auto-closing it prematurely breaks the audit trail this whole
-setup exists to protect.
+| Option picked | Fully resolves | Partial |
+| --- | --- | --- |
+| Push and create a PR | Finishing reference in the PR body (`Closes #<number>`). | Partial reference in the PR body (`Relates to #<number>`). |
+| Merge locally | No PR carries a reference, so nothing closes on its own. Tell the user, and offer to close the issue by hand once the merge is pushed (`gh issue close <number> --comment "Resolved in <sha>"`). | Once the merge is pushed, offer a comment on the issue naming the merge commit (`gh issue comment <number> --body "Progress in <sha>"`). |
+| Keep as-is | Nothing to link yet. | Nothing to link yet. |
+
+Closing or commenting by hand changes the tracker: do it only on the user's
+yes.
+
+In an unattended run — a dispatcher working through issues with no one to
+ask — decide from the implementer's report instead: any work left undone
+means partial. State the choice and its reason in the PR body.
+
+Don't default to closing. An intent issue is often bigger than one PR, and
+closing it early breaks the audit trail this setup exists to protect.
 
 ## What NOT to do
 
-- Don't merge this bridge's logic into Superpowers' own skill files —
-  keep it as a separate skill so Superpowers updates don't clobber it.
-- Don't let this skill re-interview the user on things the intent issue
-  already answered.
-- Don't assume `Closes` vs `Relates to` — always ask once per PR.
-- Don't invent an intent issue number — if it can't be found or confirmed,
+- Don't merge this bridge's logic into Superpowers' own skill files — keep
+  it as a separate skill so Superpowers updates don't clobber it.
+- Don't re-interview the user on what the intent issue already answers, and
+  don't reopen its Constraints on your own.
+- Don't write a spec, run `writing-plans`, or start code after the user chose
+  to track first.
+- Don't create a spec or plan file just to hold the `Intent-Issue:` line.
+- Don't assume "fully resolves" or "partial" — ask once per PR or merge.
+- Don't invent an issue reference. If one can't be found or confirmed,
   proceed without one rather than guessing.
+- Don't use GitHub's `#<number>` or `Closes` syntax for a tracker that isn't
+  GitHub.
+- Don't close or comment on an issue without the user's yes.
