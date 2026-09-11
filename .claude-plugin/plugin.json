@@ -25,7 +25,7 @@
     "./skills/configure-issue-tracker",
     "./skills/brainstorm-to-issue",
     "./skills/superpowers-issue-bridge",
-    "./skills/fetch-github-issues",
+    "./skills/fetch-issues",
     "./skills/anti-koshary"
   ]
 }

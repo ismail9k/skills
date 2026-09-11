@@ -30,7 +30,7 @@ Six skills in three groups. Know which group you are editing before you change o
 | Group | Skills | Shares state? |
 | --- | --- | --- |
 | **Pipeline** | `configure-issue-tracker` → `brainstorm-to-issue` → `superpowers-issue-bridge` | Yes — via `docs/agents/issue-tracker.md` and the `Intent-Issue:` header |
-| **Utility** | `agent-md-setup`, `fetch-github-issues` | No — each does one job for any repo |
+| **Utility** | `agent-md-setup`, `fetch-issues` | No — each does one job for any repo (`fetch-issues` reads the tracker config when present, but needs nothing else) |
 | **Audit** | `anti-koshary` | No — deliberately depends on nothing |
 
 There is no build or lint step — the deliverables are Markdown. `bash scripts/check.sh` is the test step: it verifies the things that can silently rot here (names, manifest coverage, cross-skill coupling, and whether `anti-koshary`'s regexes still match a planted hit). Beyond that, "testing" a change means installing the skill and running it against a real repo.
@@ -45,7 +45,7 @@ skills/
 ├── configure-issue-tracker/  SKILL.md + assets/
 ├── brainstorm-to-issue/      SKILL.md + assets/
 ├── superpowers-issue-bridge/ SKILL.md
-├── fetch-github-issues/      SKILL.md
+├── fetch-issues/             SKILL.md
 └── anti-koshary/             SKILL.md + references/ + scripts/
 ```
 
