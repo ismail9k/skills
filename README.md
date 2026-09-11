@@ -1,6 +1,6 @@
 # Intent to PR
 
-Three workflow skills turn a conversation into a tracked issue, then carry that issue's intent through spec, plan, and pull request without re-deriving it at each step. A separate setup skill establishes shared agent instructions, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with.
+Three workflow skills sit on top of Superpowers' brainstorming. Every brainstorm ends one of two ways: build it now, or track it first as an intent issue. A tracked issue carries its intent through spec, plan, and pull request without being re-derived at each step, and the finished work links back to close it — in GitHub, Jira, or whichever tracker you configured. A separate setup skill establishes shared agent instructions, [`fetch-issues`](#fetch-issues) lists what's open, [`implement-issues`](#implement-issues) has agents build a batch of issues into pull requests, [`review-prs`](#review-prs) reviews pull requests with suggested changes, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with.
 
 The problem this solves: brainstorming happens in chat, gets summarized into an issue, and then the implementation planning starts from a blank page — re-asking questions the issue already answered, and producing artifacts with no link back to where the idea came from. These skills make one issue the reference point every later artifact traces back to.
 
@@ -8,19 +8,24 @@ The problem this solves: brainstorming happens in chat, gets summarized into an 
 
 ```
 agent-md-setup            (optional, once per repo)
+configure-issue-tracker   (once per repo: GitHub, Jira, local markdown, …)
+
+Superpowers brainstorming
+        │   problem understood — superpowers-issue-bridge asks:
         │
-        ▼
-configure-issue-tracker   (once per repo)
+        ├── build now ───▶ spec ──▶ plan ──▶ code ──▶ PR
         │
-        ▼
-brainstorm-to-issue  ──▶  intent issue #N
-        │
-        ▼
-superpowers-issue-bridge
-        │
-        ├──▶ Superpowers brainstorming  ──▶  spec.md   (Intent-Issue: #N)
-        ├──▶ Superpowers writing-plans  ──▶  plan.md   (Intent-Issue: #N)
-        └──▶ PR body                    ──▶  Closes #N / Relates to #N
+        └── track first ─▶ brainstorm-to-issue ──▶ intent issue #N
+                                                         │  later: "implement #N" yourself,
+                                                         │  or implement-issues for a batch
+                                                         ▼
+                                              superpowers-issue-bridge
+                                                         ├──▶ spec   (Intent-Issue: #N)
+                                                         ├──▶ plan   (Intent-Issue: #N)
+                                                         └──▶ PR     Closes #N / Relates to #N
+                                                                       │
+                                                                       ▼
+                                                                  review-prs
 ```
 
 Each stage is deliberately narrow and disclaims the next one's job.
@@ -42,6 +47,12 @@ confirmed backend in `docs/agents/issue-tracker.md`: GitHub (`owner/repo`),
 local markdown under `.scratch/`, or a freeform description of another system
 such as Jira or Linear.
 
+It also records how the rest of the pipeline reads issues and links work back:
+the issue reference format, how to list and read issues, and what a pull
+request writes to close or reference one. For GitHub those are GitHub's own
+conventions (`#42`, `Closes #42`); for Jira or anything else it asks, so no
+later skill assumes GitHub syntax.
+
 If `AGENTS.md` exists, it can add the tracker pointer and intent-to-PR workflow
 after showing the exact patch. It never creates instruction files or mutates a
 remote tracker during configuration, and re-running it with the same values is
@@ -49,27 +60,46 @@ a no-op.
 
 ### `brainstorm-to-issue`
 
-Once a brainstorm is done, turns it into a GitHub issue using a fixed five-section template:
+The track-first ending of a brainstorm. It turns the conversation into an intent issue in your configured tracker, using a fixed five-section template:
 
 | Section | What goes in it |
 | --- | --- |
 | Problem | What's wrong today, for whom, why it matters |
 | Proposed outcome | What "better" looks like — an outcome, not an implementation |
 | Affected users and systems | Who and what this touches |
-| Constraints | Hard limits already stated: compliance, security, scope, deadlines |
+| Constraints | Hard limits already stated — compliance, security, scope, deadlines — plus every decision you explicitly made. Whoever builds the issue treats this as binding. |
 | Open questions | Genuinely unresolved things, left unresolved |
 
-It captures **intent only**. Alternatives considered, out-of-scope boundaries, and edge cases are spec work, and belong to the next stage. Sections with no real content get "None identified" rather than invented filler, and the draft is always shown for confirmation before anything is created.
+It captures **intent**, not a spec. Approaches that were only considered, edge cases, and undecided design are spec work, done when the issue is built. Sections with no real content get "None identified" rather than invented filler, and the draft is always shown for confirmation before anything is created. Once the issue exists, the session ends — no spec, no plan, no code.
 
 ### `superpowers-issue-bridge`
 
-Connects the intent issue to the [Superpowers](https://github.com/obra/superpowers) skills:
+Connects intent issues to the [Superpowers](https://github.com/obra/superpowers) skills:
 
-- Seeds Superpowers' `brainstorming` with the issue's contents as already-answered, so the interview covers what the issue *doesn't* — while carrying its "Open questions" forward as still open.
-- Writes `Intent-Issue: #<number> — <url>` into `spec.md`, and carries the line unchanged into `plan.md`, so `gh issue view` and a repo grep both lead back to the same thread.
-- At PR time, asks once whether the work fully resolves the issue (`Closes #N`) or is partial (`Relates to #N`). It never guesses — an intent issue is often bigger than one PR, and auto-closing it early breaks the audit trail.
+- **Offers the choice.** When brainstorming starts with no intent issue, it asks — once the problem is understood, before any approach is proposed — whether to build now or track it first. It skips the question when you've already said, or when the work is a spike.
+- **Seeds brainstorming** with an existing issue's contents as already answered, so the interview covers what the issue *doesn't* — treating its Constraints as settled and carrying its "Open questions" forward as still open.
+- **Traces** — writes `Intent-Issue: #<number> — <url>` under the spec's title and carries the line unchanged into the plan, so `gh issue view` and a repo grep both lead back to the same thread. Spike and bounded work write no spec or plan, and it doesn't invent one.
+- **Links the work back** when it lands — asks once whether it fully resolves the issue (`Closes #N`) or is partial (`Relates to #N`), in your tracker's own syntax. A local merge has no PR to carry the link, so it offers to close the issue by hand instead. It never guesses — an intent issue is often bigger than one PR, and closing it early breaks the audit trail.
 
 It lives as a separate skill rather than as edits to Superpowers' own files, so Superpowers updates can't clobber it.
+
+## `fetch-issues`
+
+A read-only utility: lists the open issues in your tracker with their complete bodies, and never changes an issue. It works on GitHub out of the box, and on any other tracker whose tracker config says how to list issues. It needs no other skill — without a tracker config, it asks which repository or project to read.
+
+## Building and reviewing with agents
+
+Both skills work in Claude Code, Codex, and any other agent that can dispatch subagents.
+
+### `implement-issues`
+
+Builds a batch of open issues, one pull request each. It gets the queue from `fetch-issues`, then asks two things: which model the implementers use — from the models your agent actually offers — and whether to build the issues one at a time or several in parallel.
+
+Each issue gets its own worktree and branch (`feat/42-…`) and an agent that takes it through the usual flow: a spec seeded from the issue by the bridge, a plan, and Superpowers' subagent-driven development. Nobody is there to answer its questions, so it answers them from the issue and records every decision. The dispatcher re-runs the checks itself, then opens the pull request with `Closes #42` — or `Relates to #42`, naming what's left, when the work is partial — and the agent's decisions listed in the body. It never merges.
+
+### `review-prs`
+
+Reviews one pull request, a list, or all open ones, and leaves the findings as inline comments — with a GitHub suggested change wherever the fix is concrete, so the author applies it with one click. Each pull request gets two passes: does it do what its linked intent issue asks, and is the code right? Findings are checked against the code before they're posted, and the review is always a comment — approval stays with you.
 
 ## `anti-koshary`
 
@@ -166,7 +196,7 @@ cp -R skills/* ~/.claude/skills/
 
 Use `.claude/skills/` inside a project instead of `~/.claude/skills/` to scope them to that repo.
 
-`brainstorm-to-issue` and the bridge shell out to the [GitHub CLI](https://cli.github.com), so `gh auth status` needs to pass.
+With a GitHub tracker, `brainstorm-to-issue`, the bridge, and `fetch-issues` shell out to the [GitHub CLI](https://cli.github.com), so `gh auth status` needs to pass. Other trackers use whatever tool their tracker config names. `implement-issues` and `review-prs` always need `gh`, because pull requests live on GitHub even when issues live elsewhere.
 
 ## Usage
 
@@ -178,13 +208,19 @@ Then configure where intents live:
 
 > Run the configure-issue-tracker skill
 
-Then, once you've talked a problem through and it's ready to be tracked:
+Then brainstorm with Superpowers as usual. Once it understands the problem, the bridge asks:
 
-> File this as an issue
+> Do you want to build this now, or track it as an intent issue first?
 
-And when you're ready to build it:
+Pick track first — or just say "file this as an issue" — and the session ends with an intent issue. When you're ready to build it:
 
 > Let's implement #42
+
+Or have agents build several tracked issues at once, then review what they opened:
+
+> Work through the open issues
+
+> Review the open PRs
 
 ## Without Claude Code
 
