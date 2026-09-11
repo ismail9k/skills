@@ -43,7 +43,7 @@ One directory per skill under `skills/`, each holding a `SKILL.md` and whatever 
 skills/
 ├── agent-md-setup/           SKILL.md + assets/
 ├── configure-issue-tracker/  SKILL.md + assets/
-├── brainstorm-to-issue/      SKILL.md
+├── brainstorm-to-issue/      SKILL.md + assets/
 ├── superpowers-issue-bridge/ SKILL.md
 ├── fetch-github-issues/      SKILL.md
 └── anti-koshary/             SKILL.md + references/ + scripts/
@@ -55,7 +55,7 @@ This has already gone wrong once: a directory was renamed and the manifest kept 
 
 **Skills here are installed individually**, so each directory must be self-sufficient. Never factor shared content into a file two skills both read — a skill installed on its own arrives with nothing but its own directory. Skills reference each other by name only, never by path.
 
-`skills/agent-md-setup/assets/AGENTS.md` and `.../assets/CLAUDE.md` are the complete templates that skill writes into a target repo. `skills/configure-issue-tracker/assets/AGENTS-sections.md` is the source for the tracker and workflow sections its skill may merge into an existing `AGENTS.md`. Edit those assets, not copies in the skill prose, when generated content changes.
+`skills/agent-md-setup/assets/AGENTS.md` and `.../assets/CLAUDE.md` are the complete templates that skill writes into a target repo. `skills/configure-issue-tracker/assets/AGENTS-sections.md` is the source for the tracker and workflow sections its skill may merge into an existing `AGENTS.md`. `skills/brainstorm-to-issue/assets/intent-issue.md` is the body template for every intent issue. Edit those assets, not copies in the skill prose, when generated content changes.
 
 ## The pipeline these three skills form
 
@@ -75,7 +75,7 @@ The two contracts that hold the pipeline together:
 - Every skill ends with a **"What NOT to do"** section listing the failure modes (fabricating content for empty sections, guessing a repo or issue number, silently overwriting files, one skill absorbing another's scope). New skills should follow the same shape.
 - Skills prescribe *asking* rather than defaulting at the ambiguous points — `Closes #N` vs `Relates to #N`, overwriting an existing `AGENTS.md`, which brainstorming stage applies. Don't "simplify" those into silent defaults; the ask is the point.
 - The bridge is intentionally a separate skill from Superpowers' own files so Superpowers updates can't clobber it. Don't propose merging it in.
-- `brainstorm-to-issue` carries a "Non-Claude-Code version (plain prompt)" section for agents without skill discovery. Keep it in sync with the template above it.
+- `brainstorm-to-issue` carries a "Non-Claude-Code version (plain prompt)" section for agents without skill discovery. Keep it in sync with `assets/intent-issue.md`.
 - `anti-koshary` carries one too, condensed from its own body — it started life as a paste-able prompt, and that form stays supported. Keep it in sync with the seven Pass 1 sections.
 - `anti-koshary`'s value lives in `references/` and `scripts/`, not in the SKILL.md prose. The two things models do badly are (a) reporting `.env.example` and test fixtures as leaked secrets, and (b) flagging coincidental duplication as if it were coupling — those are exactly what the reference files exist to prevent, so don't thin them out to save lines.
 - `anti-koshary` is structure-first on purpose: layer collapse and duplication are Pass 1 sections 1–5, security and dependencies are section 7. Models drift toward leading with security because it feels more urgent — don't let the ordering get "corrected" back. The one exception is Pass 2, which fixes a Critical finding first; that is a safety property, not an emphasis one. `references/structural-decay.md` is ordered to match sections 1–5, so reordering one means reordering the other.

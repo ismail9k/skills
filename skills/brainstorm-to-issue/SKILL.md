@@ -70,30 +70,11 @@ into an issue").
 2. If any section has no real content from the conversation, write
    "None identified" rather than fabricating detail — do not pad sections
    to look complete.
-3. Draft the issue body using exactly this template. The title is used
-   twice — once as the GitHub issue title itself, and once as the H1 at
-   the top of the body, so the content still reads correctly if exported,
-   printed, or viewed outside GitHub's issue chrome:
-
-   ```markdown
-   # {title}
-
-   ## Problem
-   {problem}
-
-   ## Proposed outcome
-   {proposed_outcome}
-
-   ## Affected users and systems
-   {affected}
-
-   ## Constraints
-   {constraints}
-
-   ## Open questions
-   {open_questions}
-   ```
-
+3. Read `assets/intent-issue.md` and fill it in exactly — same headings,
+   same order. The title is used twice — once as the GitHub issue title
+   itself, and once as the H1 at the top of the body, so the content still
+   reads correctly if exported, printed, or viewed outside GitHub's issue
+   chrome.
 4. Show the drafted title and body to the user and ask for confirmation
    or edits before creating anything. Do not create the issue silently.
 5. Once confirmed, create it:
