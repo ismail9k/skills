@@ -27,6 +27,7 @@
     "./skills/superpowers-issue-bridge",
     "./skills/fetch-issues",
     "./skills/implement-issues",
+    "./skills/review-prs",
     "./skills/anti-koshary"
   ]
 }
