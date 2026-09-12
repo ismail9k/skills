@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "anti-koshary": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/anti-koshary/SKILL.md",
+      "computedHash": "5eeabb1cab2459d9f63469a348f4ef4ec7828075cbcc2fbfddc34dcb840cdc05"
+    },
+    "brainstorm-to-issue": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/brainstorm-to-issue/SKILL.md",
+      "computedHash": "26811b2959f4d388153e3f7a060109ff63fe225372a22564c419c81c903de955"
+    },
+    "fetch-issues": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/fetch-issues/SKILL.md",
+      "computedHash": "eae5eea545fc763534738460ede17f8494c4414ce42795badc1b21924dbc266e"
+    },
+    "implement-issues": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/implement-issues/SKILL.md",
+      "computedHash": "46681e8bab22411820365a49f9e4c2a5fee316dfd31ce07dd1c10a33f0c4b267"
+    },
+    "review-prs": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/review-prs/SKILL.md",
+      "computedHash": "f7eb6863172d0b03f8ac5775a99331e06135604a6ca4477cdfc813a0ecfb0ced"
+    },
+    "setup-agent-md": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/setup-agent-md/SKILL.md",
+      "computedHash": "c63bf0c77bdc075f0a892943ede623e440ac626a28fe0cc888eb394ae1d8bb93"
+    },
+    "setup-issue-tracker": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/setup-issue-tracker/SKILL.md",
+      "computedHash": "2ee280281a1a626f661f288bf17f816bb8939c85cf824c8b44eede7f1555a6ec"
+    },
+    "superpowers-issue-bridge": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/superpowers-issue-bridge/SKILL.md",
+      "computedHash": "700dda6f6fc5410c1ba5198ab29cb7c1f336e182429c1601420a49f9d76793ff"
+    }
+  }
+}

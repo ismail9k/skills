@@ -247,6 +247,62 @@ Whatever reads and writes your tracker — a CLI or an MCP server — installed 
 
 ## Install
 
+The plugin is named **`9k`**. Individual skill names stay the same, including
+`setup-agent-md`.
+
+### Claude Code — `/9k:…` commands
+
+To load this checkout, start Claude Code from the project you want to work on
+and pass the absolute path to this repository:
+
+```bash
+claude --plugin-dir /absolute/path/to/skills
+```
+
+Then invoke a skill in Claude Code:
+
+```text
+/9k:setup-agent-md
+/9k:setup-issue-tracker
+/9k:anti-koshary
+```
+
+This loads the plugin for that session. Run `/reload-plugins` after editing
+the checkout. Current Claude Code also supports persistent plugins inside
+`~/.claude/skills/`: place the plugin root (containing `.claude-plugin/` and
+`skills/`) in `~/.claude/skills/9k/`, then start a new session. Preserve any
+existing directory before putting a copy there. See the
+[Claude Code plugin guide](https://code.claude.com/docs/en/plugins).
+
+### Codex — install the skills
+
+From this repository, run:
+
+```bash
+npx skills add . -g
+```
+
+Select Codex and the skills you want in the installer. The local `.` source
+uses this checkout, including changes that have not been pushed. Global
+installation makes the skills available across projects.
+
+In Codex CLI or the IDE extension, type `$` to select a skill, or use `/skills`.
+For example:
+
+```text
+$setup-agent-md
+$setup-issue-tracker
+$anti-koshary
+```
+
+You can also ask, "Use the setup-agent-md skill." This installs standalone
+skills; the plugin's `9k` namespace does not change their names. Codex discovers
+user skills in `~/.agents/skills/` and repository skills in `.agents/skills/`.
+Restart Codex if a newly installed skill does not appear. See the
+[Codex skill guide](https://learn.chatgpt.com/docs/build-skills).
+
+### Other agents and individual installs
+
 Each skill stands alone — install all of them or select only the ones you need.
 
 ```bash
