@@ -1,6 +1,6 @@
 # Intent to PR
 
-Three workflow skills sit on top of Superpowers' brainstorming. Every brainstorm ends one of two ways: build it now, or track it first as an intent issue. A tracked issue carries its intent through spec, plan, and pull request without being re-derived at each step, and the finished work links back to close it — in GitHub, Jira, or whichever tracker you configured. A separate setup skill establishes shared agent instructions, [`fetch-issues`](#fetch-issues) lists what's open, [`implement-issues`](#implement-issues) has agents build a batch of issues into pull requests, [`review-prs`](#review-prs) reviews pull requests with suggested changes, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with.
+Three workflow skills sit on top of Superpowers' brainstorming. Every brainstorm ends one of two ways: build it now, or track it first as an intent issue. A tracked issue carries its intent through spec, plan, and pull request without being re-derived at each step, and the finished work links back to close it — in GitHub, Jira, or whichever tracker you configured. A separate setup skill establishes shared agent instructions, [`fetch-issues`](#fetch-issues) lists what's open, [`implement-issues`](#implement-issues) has agents build a batch of issues into reviewed pull requests, [`review-prs`](#review-prs) reviews pull requests with suggested changes, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with.
 
 The problem this solves: brainstorming happens in chat, gets summarized into an issue, and then the implementation planning starts from a blank page — re-asking questions the issue already answered, and producing artifacts with no link back to where the idea came from. These skills make one issue the reference point every later artifact traces back to.
 
@@ -95,7 +95,9 @@ Both skills work in Claude Code, Codex, and any other agent that can dispatch su
 
 Builds a batch of open issues, one pull request each. It gets the queue from `fetch-issues`, then asks two things: which model the implementers use — from the models your agent actually offers — and whether to build the issues one at a time or several in parallel.
 
-Each issue gets its own worktree and branch (`feat/42-…`) and an agent that takes it through the usual flow: a spec seeded from the issue by the bridge, a plan, and Superpowers' subagent-driven development. Nobody is there to answer its questions, so it answers them from the issue and records every decision. The dispatcher re-runs the checks itself, then opens the pull request with `Closes #42` — or `Relates to #42`, naming what's left, when the work is partial — and the agent's decisions listed in the body. It never merges.
+Each issue gets its own worktree and branch (`feat/42-…`) and an agent that takes it through the usual flow: a spec seeded from the issue by the bridge, a plan, and Superpowers' subagent-driven development. Nobody is there to answer its questions, so it answers them from the issue and records every decision. The dispatcher re-runs the checks itself, then opens a draft pull request with `Closes #42` — or `Relates to #42`, naming what's left, when the work is partial — and the agent's decisions listed in the body.
+
+Next, a separate agent runs `review-prs` on the draft and leaves its findings as comments. The agent that built the issue answers them with Superpowers' `receiving-code-review`: it fixes what holds, pushes back on what doesn't, and replies in each thread. The dispatcher re-runs the checks with `verification-before-completion` and marks the pull request ready. A pull request stays a draft when the checks fail or a finding couldn't be fixed. It never merges.
 
 ### `review-prs`
 
@@ -186,7 +188,7 @@ What to install depends on which skills you use. Every skill assumes `git`.
 | `brainstorm-to-issue` | `gh` for a GitHub tracker, or your tracker's own tool |
 | `superpowers-issue-bridge` | Superpowers; `gh` for a GitHub tracker |
 | `fetch-issues` | `gh` for a GitHub tracker, or your tracker's own tool |
-| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues` and `superpowers-issue-bridge` skills installed alongside it |
+| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues`, `superpowers-issue-bridge`, and `review-prs` skills installed alongside it |
 | `review-prs` | Superpowers and `gh`; subagents optional — without them it reviews inline |
 | `anti-koshary` | Nothing required; optional audit tools make its dependency scan complete |
 
@@ -322,12 +324,13 @@ cp -R skills/* ~/.claude/skills/
 
 Use `.claude/skills/` inside a project instead of `~/.claude/skills/` to scope them to that repo.
 
-Installing `implement-issues` on its own isn't enough — it also needs `fetch-issues` and `superpowers-issue-bridge`:
+Installing `implement-issues` on its own isn't enough — it also needs `fetch-issues`, `superpowers-issue-bridge`, and `review-prs`:
 
 ```bash
 npx skills add ismail9k/skills@implement-issues
 npx skills add ismail9k/skills@fetch-issues
 npx skills add ismail9k/skills@superpowers-issue-bridge
+npx skills add ismail9k/skills@review-prs
 ```
 
 ## Usage
