@@ -29,9 +29,12 @@ platform's equivalents.
    repository (`gh repo view --json nameWithOwner`). Say which you used.
 3. Pull requests: the ones the user names; for "all" or "the open ones",
    `gh pr list --repo <owner/repo> --state open --limit 1000 --json number,title,url,isDraft`.
-   Leave drafts out unless the user named them.
+   Leave drafts out unless they were named.
 4. Print the list and say that findings will be posted on each pull request
-   as comments. The user's confirmation of the list is the go-ahead to post.
+   as comments. The user's confirmation of the list is the go-ahead to post —
+   unless you were dispatched with that go-ahead already given, as
+   `implement-issues` does for the drafts it opens; then print the list and
+   continue.
 
 ## Stage 2 — Gather each pull request's context
 
