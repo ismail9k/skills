@@ -28,7 +28,8 @@ Issue <reference>: <title>
    `executing-plans` instead and say so in your report.
 4. **Stop before `finishing-a-development-branch`.** The dispatcher verifies
    your branch, pushes it, and opens a draft pull request. Another agent
-   reviews it, and you may then be asked to answer that review.
+   reviews it, and you may then be asked to answer that review with
+   `answer-pr-reviews`.
 
 ## Rules
 

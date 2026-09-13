@@ -18,8 +18,8 @@ decision an agent makes on the user's behalf lands in its pull request, where
 the user reviews it.
 
 Each pull request opens as a draft. A second agent runs `review-prs` on it,
-and the agent that built the issue answers that review with Superpowers'
-`receiving-code-review`. The pull request is marked ready once the review is
+and the agent that built the issue answers that review with
+`answer-pr-reviews`. The pull request is marked ready once the review is
 answered and the checks still pass.
 
 You are the dispatcher. Agents write code in their own worktrees; you push
@@ -32,10 +32,9 @@ Use your platform's equivalents.
 ## Requirements
 
 - Superpowers (`brainstorming`, `writing-plans`, `subagent-driven-development`,
-  `finishing-a-development-branch`, `receiving-code-review`,
-  `verification-before-completion`), plus the
-  `fetch-issues`, `superpowers-issue-bridge`, and `review-prs` skills. If one
-  is missing, name it and stop.
+  `finishing-a-development-branch`, `verification-before-completion`), plus
+  the `fetch-issues`, `superpowers-issue-bridge`, `review-prs`, and
+  `answer-pr-reviews` skills. If one is missing, name it and stop.
 - A GitHub repository and `gh`, with `gh auth status` passing — pull requests
   and their reviews live there, wherever the issues live.
 
@@ -144,12 +143,10 @@ with no findings: go to Stage 7, step 3.
 ## Stage 7 — Answer the review and mark it ready
 
 1. Message the agent that built the issue — or, if it can no longer be
-   messaged, dispatch a new one into the same worktree — to answer the review
-   on `#<number>` with `receiving-code-review`: fix what holds, push back on
-   what doesn't, push the branch (never force), and reply in each comment's
-   thread as that skill describes. No one can answer its questions: where the
-   skill says to ask, it decides and gives the reason in its reply, and the
-   issue's Constraints stand for the user's prior decisions.
+   messaged, dispatch a new one into the same worktree — to run
+   `answer-pr-reviews #<number>` on `<owner/repo>` in that worktree, telling
+   it the user's go-ahead for this run covers pushing the fixes and replying
+   to each comment.
 2. Verify the pushed head with `verification-before-completion`, running
    Stage 4's checks yourself. If one fails, send the agent the failures once,
    then check again.
