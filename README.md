@@ -1,6 +1,6 @@
 # Intent to PR
 
-Three workflow skills sit on top of Superpowers' brainstorming. Every brainstorm ends one of two ways: build it now, or track it first as an intent issue. A tracked issue carries its intent through spec, plan, and pull request without being re-derived at each step, and the finished work links back to close it — in GitHub, Jira, or whichever tracker you configured. A separate setup skill establishes shared agent instructions, [`fetch-issues`](#fetch-issues) lists what's open, [`implement-issues`](#implement-issues) has agents build a batch of issues into reviewed pull requests, [`review-prs`](#review-prs) reviews pull requests with suggested changes, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with.
+Three workflow skills sit on top of Superpowers' brainstorming. Every brainstorm ends one of two ways: build it now, or track it first as an intent issue. A tracked issue carries its intent through spec, plan, and pull request without being re-derived at each step, and the finished work links back to close it — in GitHub, Jira, or whichever tracker you configured. A separate setup skill establishes shared agent instructions, [`fetch-issues`](#fetch-issues) lists what's open, [`implement-issues`](#implement-issues) has agents build a batch of issues into reviewed pull requests, [`review-prs`](#review-prs) reviews pull requests with suggested changes, [`answer-pr-reviews`](#answer-pr-reviews) answers those reviews, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with.
 
 The problem this solves: brainstorming happens in chat, gets summarized into an issue, and then the implementation planning starts from a blank page — re-asking questions the issue already answered, and producing artifacts with no link back to where the idea came from. These skills make one issue the reference point every later artifact traces back to.
 
@@ -26,6 +26,9 @@ Superpowers brainstorming
                                                                        │
                                                                        ▼
                                                                   review-prs
+                                                                       │
+                                                                       ▼
+                                                                  answer-pr-reviews
 ```
 
 Each stage is deliberately narrow and disclaims the next one's job.
@@ -89,7 +92,7 @@ A read-only utility: lists the open issues in your tracker with their complete b
 
 ## Building and reviewing with agents
 
-Both skills work in Claude Code, Codex, and any other agent that can dispatch subagents.
+These skills work in Claude Code, Codex, and other agents; `implement-issues` needs one that can dispatch subagents.
 
 ### `implement-issues`
 
@@ -97,11 +100,15 @@ Builds a batch of open issues, one pull request each. It gets the queue from `fe
 
 Each issue gets its own worktree and branch (`feat/42-…`) and an agent that takes it through the usual flow: a spec seeded from the issue by the bridge, a plan, and Superpowers' subagent-driven development. Nobody is there to answer its questions, so it answers them from the issue and records every decision. The dispatcher re-runs the checks itself, then opens a draft pull request with `Closes #42` — or `Relates to #42`, naming what's left, when the work is partial — and the agent's decisions listed in the body.
 
-Next, a separate agent runs `review-prs` on the draft and leaves its findings as comments. The agent that built the issue answers them with Superpowers' `receiving-code-review`: it fixes what holds, pushes back on what doesn't, and replies in each thread. The dispatcher re-runs the checks with `verification-before-completion` and marks the pull request ready. A pull request stays a draft when the checks fail or a finding couldn't be fixed. It never merges.
+Next, a separate agent runs `review-prs` on the draft and leaves its findings as comments. The agent that built the issue answers them with `answer-pr-reviews`: it fixes what holds, pushes back on what doesn't, pushes the fixes, and replies in each thread. The dispatcher re-runs the checks with `verification-before-completion` and marks the pull request ready. A pull request stays a draft when the checks fail or a finding couldn't be fixed. It never merges.
 
 ### `review-prs`
 
 Reviews one pull request, a list, or all open ones, and leaves the findings as inline comments — with a GitHub suggested change wherever the fix is concrete, so the author applies it with one click. Each pull request gets two passes: does it do what its linked intent issue asks, and is the code right? Findings are checked against the code before they're posted, and the review is always a comment — approval stays with you.
+
+### `answer-pr-reviews`
+
+Answers the review on the pull requests you name, or on all your open ones that have unanswered feedback. It's a proxy for Superpowers' `receiving-code-review`, which decides what to do with each comment but takes no pull request: this skill collects each pull request's unresolved threads and the findings in its review bodies, checks out its branch, and hands the feedback over. Once the fixes are pushed — never forced — it replies in every thread, naming the commit for each fix and the reason for each pushback. It resolves no threads and never marks a pull request ready; that stays with you.
 
 ## `anti-koshary`
 
@@ -188,8 +195,9 @@ What to install depends on which skills you use. Every skill assumes `git`.
 | `brainstorm-to-issue` | `gh` for a GitHub tracker, or your tracker's own tool |
 | `superpowers-issue-bridge` | Superpowers; `gh` for a GitHub tracker |
 | `fetch-issues` | `gh` for a GitHub tracker, or your tracker's own tool |
-| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues`, `superpowers-issue-bridge`, and `review-prs` skills installed alongside it |
+| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues`, `superpowers-issue-bridge`, `review-prs`, and `answer-pr-reviews` skills installed alongside it |
 | `review-prs` | Superpowers and `gh`; subagents optional — without them it reviews inline |
+| `answer-pr-reviews` | Superpowers and `gh` |
 | `anti-koshary` | Nothing required; optional audit tools make its dependency scan complete |
 
 ### Node.js — for the Skills CLI
@@ -219,7 +227,7 @@ gh auth login
 gh auth status      # must pass before the skills use gh
 ```
 
-Needed when your tracker is GitHub, and always for `implement-issues` and `review-prs` — pull requests live on GitHub even when issues live elsewhere.
+Needed when your tracker is GitHub, and always for `implement-issues`, `review-prs`, and `answer-pr-reviews` — pull requests live on GitHub even when issues live elsewhere.
 
 ### Subagents — for `implement-issues` and `review-prs`
 
@@ -324,13 +332,14 @@ cp -R skills/* ~/.claude/skills/
 
 Use `.claude/skills/` inside a project instead of `~/.claude/skills/` to scope them to that repo.
 
-Installing `implement-issues` on its own isn't enough — it also needs `fetch-issues`, `superpowers-issue-bridge`, and `review-prs`:
+Installing `implement-issues` on its own isn't enough — it also needs `fetch-issues`, `superpowers-issue-bridge`, `review-prs`, and `answer-pr-reviews`:
 
 ```bash
 npx skills add ismail9k/skills@implement-issues
 npx skills add ismail9k/skills@fetch-issues
 npx skills add ismail9k/skills@superpowers-issue-bridge
 npx skills add ismail9k/skills@review-prs
+npx skills add ismail9k/skills@answer-pr-reviews
 ```
 
 ## Usage
@@ -356,6 +365,10 @@ Or have agents build several tracked issues at once, then review what they opene
 > Work through the open issues
 
 > Review the open PRs
+
+And when reviews land on your own pull requests:
+
+> Answer the reviews on my PRs
 
 ## Without Claude Code
 
