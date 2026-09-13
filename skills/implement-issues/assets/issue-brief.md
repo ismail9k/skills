@@ -27,14 +27,16 @@ Issue <reference>: <title>
    rules. If you can't dispatch subagents here, execute the plan with
    `executing-plans` instead and say so in your report.
 4. **Stop before `finishing-a-development-branch`.** The dispatcher verifies
-   your branch, pushes it, and opens the pull request.
+   your branch, pushes it, and opens a draft pull request. Another agent
+   reviews it, and you may then be asked to answer that review.
 
 ## Rules
 
 - Before touching anything, read the repository's `AGENTS.md` (and
   `CLAUDE.md`, if present) and follow it.
 - Work only inside the worktree above. Never check out, commit to, or reset
-  the base branch, and never push or open a pull request.
+  the base branch, and never open a pull request. Don't push until you are
+  asked to answer the review — then push only this branch.
 - Keep to what the issue asks. Don't refactor unrelated code.
 - If something fails and you can't fix it, commit what you have and name the
   failure in your report — never hide it.
