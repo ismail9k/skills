@@ -3,7 +3,8 @@
 # can break is consistency, not compilation:
 #
 #   1. every skill's frontmatter name matches its directory
-#   2. .claude-plugin/plugin.json declares exactly the skills on disk
+#   2. .claude-plugin/marketplace.json puts every skill on disk in exactly one
+#      plugin, and no plugin.json declares skills that would conflict with it
 #   3. no skill references another by path (each is installed alone)
 #   4. anti-koshary's grep patterns still match a file with a known hit
 #
@@ -32,17 +33,25 @@ for d in skills/*/; do
 done
 
 # ----------------------------------------------------- 2. manifest coverage
-head_ "plugin.json declares exactly what is on disk"
-MANIFEST=.claude-plugin/plugin.json
-DECLARED=$(sed -n 's|.*"\./skills/\([a-z0-9-]*\)".*|\1|p' "$MANIFEST" | sort)
+head_ "marketplace.json ships each skill on disk in exactly one plugin"
+MANIFEST=.claude-plugin/marketplace.json
+DECLARED=$(grep -o '"\./skills/[a-z0-9-]*"' "$MANIFEST" | sed 's|"\./skills/||; s|"$||' | sort)
 ONDISK=$(ls -1 skills | sort)
+for s in $(printf '%s\n' "$DECLARED" | uniq -d); do
+  bad "declared by more than one plugin: $s"
+done
 for s in $DECLARED; do
   [ -d "skills/$s" ] || bad "declared but missing on disk: $s"
 done
 for s in $ONDISK; do
-  printf '%s\n' "$DECLARED" | grep -qx "$s" || bad "on disk but undeclared: $s"
+  printf '%s\n' "$DECLARED" | grep -qx "$s" || bad "on disk but in no plugin: $s"
 done
-[ "$FAIL" -eq 0 ] && ok "$(printf '%s\n' "$ONDISK" | grep -c .) skills, all declared"
+# plugins share the repo root with "strict": false, so a plugin.json that
+# declares skills conflicts with them and the plugins fail to load
+if [ -f .claude-plugin/plugin.json ] && grep -q '"skills"' .claude-plugin/plugin.json; then
+  bad "plugin.json declares skills — they belong in marketplace.json"
+fi
+[ "$FAIL" -eq 0 ] && ok "$(printf '%s\n' "$ONDISK" | grep -c .) skills, each in one plugin"
 
 # ------------------------------------------------------- 3. no path coupling
 head_ "no skill references another by path"

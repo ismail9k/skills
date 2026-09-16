@@ -33,14 +33,16 @@ As more skills are adopted, each may add its own file here (e.g. triage labels, 
 
 A skill-authoring repo, not an application. `setup-issue-tracker`, `brainstorm-to-issue`, and `superpowers-issue-bridge` bridge an issue tracker to the Superpowers skill suite: a Superpowers brainstorm either builds now or files an intent issue to build later, and the work built from an intent issue carries its reference through spec, plan, and PR, then links back to close it. `implement-issues`, `review-prs`, and `answer-pr-reviews` carry that past the issue: agents build tracked issues into draft PRs, a separate agent reviews each one with `review-prs`, and the building agent answers the review with `answer-pr-reviews` before the PR is marked ready. `review-prs` also reviews any PR on its own, and `answer-pr-reviews` answers the review on any PR. `setup-agent-md` is generic repository setup rather than part of that pipeline. `anti-koshary` is also **not part of the pipeline** — it is a standalone two-pass codebase audit that happens to be authored here. Keep it that way: it must not grow a dependency on `docs/agents/issue-tracker.md` or on an intent issue, because the whole point is that it works on any repo, cold.
 
-Nine skills in four groups. Know which group you are editing before you change one:
+Nine skills in four groups, shipped as two plugins. Know which group you are editing before you change one:
 
-| Group | Skills | Shares state? |
-| --- | --- | --- |
-| **Pipeline** | `setup-issue-tracker` → `brainstorm-to-issue` → `superpowers-issue-bridge` | Yes — via `docs/agents/issue-tracker.md` and the `Intent-Issue:` header |
-| **Delivery** | `implement-issues` → `review-prs` → `answer-pr-reviews` | Yes — read `docs/agents/issue-tracker.md`; `implement-issues` builds on `fetch-issues`, the bridge, and Superpowers, and dispatches `review-prs` and then `answer-pr-reviews` on each PR it opens |
-| **Utility** | `setup-agent-md`, `fetch-issues` | No — each does one job for any repo (`fetch-issues` reads the tracker config when present, but needs nothing else) |
-| **Audit** | `anti-koshary` | No — deliberately depends on nothing |
+| Group | Skills | Plugin | Shares state? |
+| --- | --- | --- | --- |
+| **Pipeline** | `setup-issue-tracker` → `brainstorm-to-issue` → `superpowers-issue-bridge` | `superpowers-issues` | Yes — via `docs/agents/issue-tracker.md` and the `Intent-Issue:` header |
+| **Delivery** | `implement-issues` → `review-prs` → `answer-pr-reviews` | `superpowers-issues` | Yes — read `docs/agents/issue-tracker.md`; `implement-issues` builds on `fetch-issues`, the bridge, and Superpowers, and dispatches `review-prs` and then `answer-pr-reviews` on each PR it opens |
+| **Utility** | `setup-agent-md`, `fetch-issues` | `repo-kit`, `superpowers-issues` | No — each does one job for any repo (`fetch-issues` reads the tracker config when present, but needs nothing else) |
+| **Audit** | `anti-koshary` | `repo-kit` | No — deliberately depends on nothing |
+
+`fetch-issues` is a utility, but it ships in `superpowers-issues` because `implement-issues` requires it. `repo-kit` holds only skills that work on any repo with nothing else installed; keep it that way.
 
 There is no build or lint step — the deliverables are Markdown. `bash scripts/check.sh` is the test step: it verifies the things that can silently rot here (names, manifest coverage, cross-skill coupling, and whether `anti-koshary`'s regexes still match a planted hit). Beyond that, "testing" a change means installing the skill and running it against a real repo.
 
@@ -61,9 +63,11 @@ skills/
 └── anti-koshary/             SKILL.md + references/ + scripts/
 ```
 
-Three things must agree on a skill's name: the **directory**, the skill's **frontmatter `name:`**, and its entry in **`.claude-plugin/plugin.json`**'s `skills` array. That name is how the skill is invoked and how `npx skills add ismail9k/skills@<name>` selects it, so adding or renaming one means editing all three plus every doc that cites it — README, this file, and any skill that recommends it by name.
+Three things must agree on a skill's name: the **directory**, the skill's **frontmatter `name:`**, and its entry in exactly one plugin's `skills` array in **`.claude-plugin/marketplace.json`**. That name is how the skill is invoked and how `npx skills add ismail9k/skills@<name>` selects it, so adding or renaming one means editing all three plus every doc that cites it — README, this file, and any skill that recommends it by name.
 
 This has already gone wrong once: a directory was renamed and the manifest kept pointing at the old path, so the skill shipped from neither. `bash scripts/check.sh` exists to catch that; run it after any rename.
+
+`marketplace.json` is the `ismail9k` marketplace, and both plugins install from it (`superpowers-issues@ismail9k`, `repo-kit@ismail9k`). Both share the repo root as their source with `"strict": false`, so each marketplace entry is that plugin's whole definition. Don't add a `.claude-plugin/plugin.json` that declares skills: it conflicts with those entries and the plugins fail to load. `claude plugin validate --strict .` checks the manifest itself.
 
 **Skills here are installed individually**, so each directory must be self-sufficient. Never factor shared content into a file two skills both read — a skill installed on its own arrives with nothing but its own directory. Skills reference each other by name only, never by path.
 
@@ -138,12 +142,13 @@ here.
 bash scripts/check.sh                              # the test step — run before every commit
 npx skills add ismail9k/skills@<name>              # install one skill, the real end-to-end test
 bash skills/anti-koshary/scripts/dep_audit.sh DIR  # the one executable a skill ships
+claude plugin validate --strict .                  # the marketplace manifest, after editing it
 ```
 
 There is no build or lint step; see **What this repo is**.
 
 ### Things agents get wrong
 
-- Renaming a skill directory without updating `.claude-plugin/plugin.json`, which silently unships it.
+- Renaming a skill directory without updating `.claude-plugin/marketplace.json`, which silently unships it.
 - Editing a template's copy inside a SKILL.md instead of the `assets/` file that is its source.
 - Changing a `references/` regex without running it against a known hit.

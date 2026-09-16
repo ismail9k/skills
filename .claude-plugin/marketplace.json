@@ -1,0 +1,69 @@
+{
+  "name": "ismail9k",
+  "owner": {
+    "name": "Ismail (9K)",
+    "url": "https://github.com/ismail9k"
+  },
+  "metadata": {
+    "description": "Agent skills by Ismail (9K): superpowers-issues carries tracked issues through Superpowers to reviewed pull requests; repo-kit sets up and audits any repository."
+  },
+  "plugins": [
+    {
+      "name": "superpowers-issues",
+      "source": "./",
+      "strict": false,
+      "version": "0.1.0",
+      "description": "Issue-tracker skills for Superpowers: capture intent as a tracked issue, carry it through spec, plan, and pull request, and have agents build a batch of issues into reviewed pull requests.",
+      "author": {
+        "name": "Ismail (9K)",
+        "url": "https://github.com/ismail9k"
+      },
+      "homepage": "https://github.com/ismail9k/skills",
+      "repository": "https://github.com/ismail9k/skills",
+      "license": "MIT",
+      "keywords": [
+        "superpowers",
+        "workflow",
+        "issues",
+        "specs",
+        "planning",
+        "pull-requests",
+        "code-review"
+      ],
+      "skills": [
+        "./skills/setup-issue-tracker",
+        "./skills/brainstorm-to-issue",
+        "./skills/superpowers-issue-bridge",
+        "./skills/fetch-issues",
+        "./skills/implement-issues",
+        "./skills/review-prs",
+        "./skills/answer-pr-reviews"
+      ]
+    },
+    {
+      "name": "repo-kit",
+      "source": "./",
+      "strict": false,
+      "version": "0.1.0",
+      "description": "Standalone skills for any repository: one AGENTS.md shared by every coding agent, and a two-pass audit of codebase structure, security, and dependencies.",
+      "author": {
+        "name": "Ismail (9K)",
+        "url": "https://github.com/ismail9k"
+      },
+      "homepage": "https://github.com/ismail9k/skills",
+      "repository": "https://github.com/ismail9k/skills",
+      "license": "MIT",
+      "keywords": [
+        "agents-md",
+        "claude-md",
+        "audit",
+        "security",
+        "refactoring"
+      ],
+      "skills": [
+        "./skills/setup-agent-md",
+        "./skills/anti-koshary"
+      ]
+    }
+  ]
+}

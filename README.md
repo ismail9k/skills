@@ -1,6 +1,6 @@
-# Intent to PR
+# Superpowers Issues
 
-Three workflow skills sit on top of Superpowers' brainstorming. Every brainstorm ends one of two ways: build it now, or track it first as an intent issue. A tracked issue carries its intent through spec, plan, and pull request without being re-derived at each step, and the finished work links back to close it — in GitHub, Jira, or whichever tracker you configured. A separate setup skill establishes shared agent instructions, [`fetch-issues`](#fetch-issues) lists what's open, [`implement-issues`](#implement-issues) has agents build a batch of issues into reviewed pull requests, [`review-prs`](#review-prs) reviews pull requests with suggested changes, [`answer-pr-reviews`](#answer-pr-reviews) answers those reviews, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with.
+Three workflow skills sit on top of Superpowers' brainstorming. Every brainstorm ends one of two ways: build it now, or track it first as an intent issue. A tracked issue carries its intent through spec, plan, and pull request without being re-derived at each step, and the finished work links back to close it — in GitHub, Jira, or whichever tracker you configured. A separate setup skill establishes shared agent instructions, [`fetch-issues`](#fetch-issues) lists what's open, [`implement-issues`](#implement-issues) has agents build a batch of issues into reviewed pull requests, [`review-prs`](#review-prs) reviews pull requests with suggested changes, [`answer-pr-reviews`](#answer-pr-reviews) answers those reviews, and [`anti-koshary`](#anti-koshary) audits the codebase you end up with. They ship as [two plugins](#install): `superpowers-issues` for everything built around an issue, and `repo-kit` for `setup-agent-md` and `anti-koshary`, which work on any repo.
 
 The problem this solves: brainstorming happens in chat, gets summarized into an issue, and then the implementation planning starts from a blank page — re-asking questions the issue already answered, and producing artifacts with no link back to where the idea came from. These skills make one issue the reference point every later artifact traces back to.
 
@@ -257,32 +257,43 @@ Whatever reads and writes your tracker — a CLI or an MCP server — installed 
 
 ## Install
 
-The plugin is named **`9k`**. Individual skill names stay the same, including
-`setup-agent-md`.
+The skills ship as two plugins from the `ismail9k` marketplace in this
+repository. Skill names stay the same in both.
 
-### Claude Code — `/9k:…` commands
+| Plugin | Skills |
+| --- | --- |
+| `superpowers-issues` | `setup-issue-tracker`, `brainstorm-to-issue`, `superpowers-issue-bridge`, `fetch-issues`, `implement-issues`, `review-prs`, `answer-pr-reviews` |
+| `repo-kit` | `setup-agent-md`, `anti-koshary` — each works on any repo with nothing else installed |
 
-To load this checkout, start Claude Code from the project you want to work on
-and pass the absolute path to this repository:
+### Claude Code — plugins
+
+Add the marketplace, then install either plugin or both:
+
+```text
+/plugin marketplace add ismail9k/skills
+/plugin install superpowers-issues@ismail9k
+/plugin install repo-kit@ismail9k
+```
+
+Invoke a skill with its plugin's name in front:
+
+```text
+/repo-kit:setup-agent-md
+/superpowers-issues:setup-issue-tracker
+/repo-kit:anti-koshary
+```
+
+An installed plugin is a copy, so edits to a checkout don't reach it. To try
+a checkout's skills as you edit them, start Claude Code from the project you
+want to work on and pass the checkout's absolute path:
 
 ```bash
 claude --plugin-dir /absolute/path/to/skills
 ```
 
-Then invoke a skill in Claude Code:
-
-```text
-/9k:setup-agent-md
-/9k:setup-issue-tracker
-/9k:anti-koshary
-```
-
-This loads the plugin for that session. Run `/reload-plugins` after editing
-the checkout. Current Claude Code also supports persistent plugins inside
-`~/.claude/skills/`: place the plugin root (containing `.claude-plugin/` and
-`skills/`) in `~/.claude/skills/9k/`, then start a new session. Preserve any
-existing directory before putting a copy there. See the
-[Claude Code plugin guide](https://code.claude.com/docs/en/plugins).
+That loads all nine skills for the session as one plugin named after the
+directory (`/skills:anti-koshary`). Run `/reload-plugins` after each edit. See
+the [Claude Code plugin guide](https://code.claude.com/docs/en/plugins).
 
 ### Codex — install the skills
 
@@ -306,7 +317,7 @@ $anti-koshary
 ```
 
 You can also ask, "Use the setup-agent-md skill." This installs standalone
-skills; the plugin's `9k` namespace does not change their names. Codex discovers
+skills, so their names carry no plugin prefix. Codex discovers
 user skills in `~/.agents/skills/` and repository skills in `.agents/skills/`.
 Restart Codex if a newly installed skill does not appear. See the
 [Codex skill guide](https://learn.chatgpt.com/docs/build-skills).
