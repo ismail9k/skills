@@ -3,6 +3,8 @@
 
 <link line from the tracker's Linking section — the finishing reference (e.g. "Closes #42"), or the partial reference (e.g. "Relates to #42") followed by what is left undone>
 
+<the report's follow-ups, which don't make the work partial — or omit this line when there are none>
+
 ## Verification
 <each command the dispatcher ran in the worktree, and its real result>
 

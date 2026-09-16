@@ -51,5 +51,9 @@ Issue <reference>: <title>
 - **Decisions:** every question you answered on the user's behalf and every
   ruling `subagent-driven-development` recorded, each with what it costs if
   wrong.
-- **Left undone:** anything the issue asks for that this branch doesn't do,
-  or "Nothing".
+- **Left undone:** anything the issue asks for that a change to this
+  repository could do and this branch doesn't, or "Nothing".
+- **Follow-ups:** what the issue's outcome still needs that no change to this
+  repository can do — an owner's step such as provisioning or a production
+  run, a check by hand, work in another repository, or work another issue
+  already tracks — or "None".

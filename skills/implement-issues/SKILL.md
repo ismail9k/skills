@@ -120,8 +120,10 @@ is already answered — push and create a pull request, as a draft
 - **Title:** Conventional Commit form ending with the issue's reference, for
   example `feat: confirm waitlist emails (#42)`.
 - **Body:** fill in `assets/pr-body.md`. Its link line comes from the
-  tracker's Linking section: the finishing reference (on GitHub,
-  `Closes #42`) when the agent's report leaves nothing undone; otherwise the
+  tracker's Linking section. First judge each item the report left undone
+  yourself: one no change to this repository can do is a follow-up, and
+  follow-ups never make the work partial. With nothing else left undone,
+  write the finishing reference (on GitHub, `Closes #42`); otherwise the
   partial reference (`Relates to #42`) followed by what is left. This is
   `superpowers-issue-bridge`'s rule for unattended runs.
 - **Base:** the base branch, or the dependency's branch for a dependent
@@ -162,6 +164,12 @@ state (ready, or draft and why), checks result, review findings by severity
 with how many were fixed, and how many decisions the agent made. Then list
 every issue skipped in Stage 1, and why.
 
+A pull request with the partial reference leaves its issue open when it
+merges. For each one, ask the user once, naming what it left undone: does it
+fully resolve the issue? On yes, swap its link line for the finishing
+reference (on GitHub, `gh pr edit <number> --body-file <file>`) and keep what
+was left undone as follow-ups.
+
 ## What NOT to do
 
 - Don't merge, enable auto-merge, or approve a pull request — marking it
@@ -171,7 +179,9 @@ every issue skipped in Stage 1, and why.
   the first push and again after the review fixes.
 - Don't open a pull request for an issue that already has one.
 - Don't offer a model your platform's dispatch doesn't accept.
-- Don't write `Closes` when the report lists work left undone.
+- Don't write `Closes` while work this repository could do is left undone,
+  unless the user says in Stage 8 that the pull request fully resolves the
+  issue. Don't write `Relates to` for follow-ups alone.
 - Don't open a pull request whose Decisions section is missing or vague —
   it is the only place the user sees the choices an agent made for them.
 - Don't have the agent that built an issue review its own pull request.

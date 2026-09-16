@@ -128,8 +128,13 @@ Closing or commenting by hand changes the tracker: do it only on the user's
 yes.
 
 In an unattended run — a dispatcher working through issues with no one to
-ask — decide from the implementer's report instead: any work left undone
-means partial. State the choice and its reason in the PR body.
+ask — decide from the implementer's report instead: work the issue asks for
+that a change to this repository could still do means partial. What no
+change here can do — an owner's provisioning or production run, a check by
+hand, work in another repository, work another issue tracks — is a
+follow-up: list it in the PR body, and it doesn't make the work partial.
+State the choice and its reason in the PR body, and ask the user about each
+partial one when the run ends.
 
 Don't default to closing. An intent issue is often bigger than one PR, and
 closing it early breaks the audit trail this setup exists to protect.
