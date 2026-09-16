@@ -124,6 +124,12 @@ section:
 | Merge locally | No PR carries a reference, so nothing closes on its own. Tell the user, and offer to close the issue by hand once the merge is pushed (`gh issue close <number> --comment "Resolved in <sha>"`). | Once the merge is pushed, offer a comment on the issue naming the merge commit (`gh issue comment <number> --body "Progress in <sha>"`). |
 | Keep as-is | Nothing to link yet. | Nothing to link yet. |
 
+When the Linking section's Finishing PR is None — local markdown, or a Jira
+or Trello board that no integration closes — a PR closes nothing. Write the
+partial reference either way. For work that fully resolves the issue, tell
+the user the issue won't close when the PR merges, and name the tracker's
+Close-by-hand step for them to run once it does.
+
 Closing or commenting by hand changes the tracker: do it only on the user's
 yes.
 

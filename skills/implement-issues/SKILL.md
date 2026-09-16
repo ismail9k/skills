@@ -124,7 +124,9 @@ is already answered — push and create a pull request, as a draft
   yourself: one no change to this repository can do is a follow-up, and
   follow-ups never make the work partial. With nothing else left undone,
   write the finishing reference (on GitHub, `Closes #42`); otherwise the
-  partial reference (`Relates to #42`) followed by what is left. This is
+  partial reference (`Relates to #42`) followed by what is left. A tracker
+  whose Finishing PR is None has no finishing reference: write the partial
+  reference, and say whether the work fully resolves the issue. This is
   `superpowers-issue-bridge`'s rule for unattended runs.
 - **Base:** the base branch, or the dependency's branch for a dependent
   issue.
@@ -165,10 +167,15 @@ with how many were fixed, and how many decisions the agent made. Then list
 every issue skipped in Stage 1, and why.
 
 A pull request with the partial reference leaves its issue open when it
-merges. For each one, ask the user once, naming what it left undone: does it
-fully resolve the issue? On yes, swap its link line for the finishing
-reference (on GitHub, `gh pr edit <number> --body-file <file>`) and keep what
+merges. For each one that left work undone, ask the user once, naming that
+work: does it fully resolve the issue? On yes, swap its link line for the
+finishing reference (`gh pr edit <number> --body-file <file>`) and keep what
 was left undone as follow-ups.
+
+A tracker with no finishing reference — local markdown, or a Jira or Trello
+board that no integration closes — has no link line to swap. For each
+pull request that fully resolves its issue, including each yes above, give
+the user the tracker's Close-by-hand step to run once it merges.
 
 ## What NOT to do
 
@@ -179,9 +186,9 @@ was left undone as follow-ups.
   the first push and again after the review fixes.
 - Don't open a pull request for an issue that already has one.
 - Don't offer a model your platform's dispatch doesn't accept.
-- Don't write `Closes` while work this repository could do is left undone,
-  unless the user says in Stage 8 that the pull request fully resolves the
-  issue. Don't write `Relates to` for follow-ups alone.
+- Don't write the finishing reference while work this repository could do
+  is left undone, unless the user says in Stage 8 that the pull request fully
+  resolves the issue. Don't write the partial reference for follow-ups alone.
 - Don't open a pull request whose Decisions section is missing or vague —
   it is the only place the user sees the choices an agent made for them.
 - Don't have the agent that built an issue review its own pull request.
