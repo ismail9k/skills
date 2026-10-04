@@ -61,7 +61,8 @@ Print the queue (reference, title, branch, dependency) and the skipped list.
 Ask both before dispatching anything. With the printed queue, the answers are
 the user's go-ahead for the whole run — for each issue: pushing its branch,
 opening a draft pull request, posting a review on it, pushing the fixes for
-that review with replies to its comments, and marking it ready.
+that review with replies to its comments, pushing fixes for its failing CI
+checks, and marking it ready.
 
 1. **Which model should the implementers use?** Offer the models your
    platform's dispatch accepts right now — its model options or spawn
@@ -154,15 +155,23 @@ with no findings: go to Stage 7, step 3.
 2. Verify the pushed head with `verification-before-completion`, running
    Stage 4's checks yourself. If one fails, send the agent the failures once,
    then check again.
-3. Mark the pull request ready — `gh pr ready <number>` — once the checks
-   pass and every review comment has a reply. It stays a draft, and you
-   record why, when the checks still fail or a finding that holds was left
-   unfixed.
+3. Wait for the pull request's CI checks on the pushed head —
+   `gh pr checks <number> --watch`. When it reports no checks, there is
+   nothing to wait for. Passing locally is not passing CI: a check can fail
+   only there, on a different runtime, a missing variable, or a step the
+   project's local commands skip. When one fails, send the agent the failing
+   check's name and log (`gh run view <run-id> --log-failed`) once, asking it
+   to fix, commit, and push this branch — never force. Then run step 2 again
+   and wait for CI again.
+4. Mark the pull request ready — `gh pr ready <number>` — once the checks
+   pass locally and in CI and every review comment has a reply. It stays a
+   draft, and you record why, when the checks still fail or a finding that
+   holds was left unfixed.
 
 ## Stage 8 — Report
 
 One table: issue, branch, pull request URL or the reason there is none,
-state (ready, or draft and why), checks result, review findings by severity
+state (ready, or draft and why), checks result locally and in CI, review findings by severity
 with how many were fixed, and how many decisions the agent made. Then list
 every issue skipped in Stage 1, and why.
 
@@ -193,4 +202,4 @@ the user the tracker's Close-by-hand step to run once it merges.
   it is the only place the user sees the choices an agent made for them.
 - Don't have the agent that built an issue review its own pull request.
 - Don't mark a pull request ready while a review comment is unanswered or
-  the checks fail on the pushed fixes.
+  the checks fail on the pushed head — locally or in CI.

@@ -57,7 +57,11 @@ conventions (`#42`, `Closes #42`); for Jira or anything else it asks, so no
 later skill assumes GitHub syntax.
 
 If `AGENTS.md` exists, it can add the tracker pointer and intent-to-PR workflow
-after showing the exact patch. It never creates instruction files or mutates a
+after showing the exact patch. That workflow ends with what an agent does when
+a watcher, such as Claude Code's pull request auto-fix, wakes it on a pull
+request it opened: answer review comments with `answer-pr-reviews`, debug a
+failing check, or merge in the base branch — never force-pushing, merging, or
+marking a draft ready. It never creates instruction files or mutates a
 remote tracker during configuration, and re-running it with the same values is
 a no-op.
 
@@ -100,7 +104,7 @@ Builds a batch of open issues, one pull request each. It gets the queue from `fe
 
 Each issue gets its own worktree and branch (`feat/42-…`) and an agent that takes it through the usual flow: a spec seeded from the issue by the bridge, a plan, and Superpowers' subagent-driven development. Nobody is there to answer its questions, so it answers them from the issue and records every decision. The dispatcher re-runs the checks itself, then opens a draft pull request with `Closes #42` — or `Relates to #42`, naming what's left, when the work is partial — and the agent's decisions listed in the body. Steps nothing in the repository can do, like provisioning a service or checking a page by hand, are listed as follow-ups and don't make the work partial. At the end it asks whether each partial pull request fully resolves its issue anyway, and switches it to `Closes #42`, or your tracker's own closing syntax, if you say yes. If your tracker has nothing a pull request can write to close an issue, it tells you which issues to close by hand once their pull requests merge.
 
-Next, a separate agent runs `review-prs` on the draft and leaves its findings as comments. The agent that built the issue answers them with `answer-pr-reviews`: it fixes what holds, pushes back on what doesn't, pushes the fixes, and replies in each thread. The dispatcher re-runs the checks with `verification-before-completion` and marks the pull request ready. A pull request stays a draft when the checks fail or a finding couldn't be fixed. It never merges.
+Next, a separate agent runs `review-prs` on the draft and leaves its findings as comments. The agent that built the issue answers them with `answer-pr-reviews`: it fixes what holds, pushes back on what doesn't, pushes the fixes, and replies in each thread. The dispatcher re-runs the checks with `verification-before-completion`, waits for the pull request's CI on the pushed head — sending any failing check's log back to the same agent once — and marks the pull request ready. A pull request stays a draft when the checks fail, locally or in CI, or a finding couldn't be fixed. It never merges.
 
 ### `review-prs`
 

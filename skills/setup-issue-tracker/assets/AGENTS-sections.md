@@ -28,3 +28,13 @@ accumulating their configuration inline.
 5. When the work lands, link it back using the Linking section of
    `docs/agents/issue-tracker.md`. `superpowers-issue-bridge` asks whether the
    work fully resolves the issue, which closes it, or is partial.
+6. **After a pull request opens:** when a watcher wakes you on a pull request
+   you opened — a failing check, a merge conflict, or new review comments, as
+   Claude Code's pull request auto-fix does — the user turning that watcher on
+   is the go-ahead to push to its branch and reply on it. Answer review
+   comments with `answer-pr-reviews`. Debug a failing check from its log with
+   Superpowers' `systematic-debugging`. Resolve a merge conflict by merging
+   the base branch in, never by rebasing. Run the project's checks under
+   `verification-before-completion` before every push. Never force-push,
+   resolve a thread, approve, merge, enable auto-merge, or mark a draft ready
+   — accepting the work stays with the user.

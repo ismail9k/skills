@@ -28,6 +28,16 @@ As more skills are adopted, each may add its own file here (e.g. triage labels, 
 5. When the work lands, link it back using the Linking section of
    `docs/agents/issue-tracker.md`. `superpowers-issue-bridge` asks whether the
    work fully resolves the issue, which closes it, or is partial.
+6. **After a pull request opens:** when a watcher wakes you on a pull request
+   you opened — a failing check, a merge conflict, or new review comments, as
+   Claude Code's pull request auto-fix does — the user turning that watcher on
+   is the go-ahead to push to its branch and reply on it. Answer review
+   comments with `answer-pr-reviews`. Debug a failing check from its log with
+   Superpowers' `systematic-debugging`. Resolve a merge conflict by merging
+   the base branch in, never by rebasing. Run the project's checks under
+   `verification-before-completion` before every push. Never force-push,
+   resolve a thread, approve, merge, enable auto-merge, or mark a draft ready
+   — accepting the work stays with the user.
 
 ## What this repo is
 
@@ -93,7 +103,7 @@ The two contracts that hold the pipeline together:
 - Pipeline skills take issue references and link syntax from the Reading and Linking sections of `docs/agents/issue-tracker.md`. `#<number>`, `gh`, and `Closes` are the GitHub values, not defaults for every tracker — a skill step that hardcodes them without a GitHub condition breaks Jira and local-markdown users.
 - The bridge is intentionally a separate skill from Superpowers' own files so Superpowers updates can't clobber it. Don't propose merging it in.
 - `implement-issues`, `review-prs`, and `answer-pr-reviews` must run in any capable agent — Claude Code, Codex, Gemini CLI, and others; `implement-issues` needs one that can dispatch subagents. Write them in actions ("dispatch an agent", "choose a model"), never one platform's tool names, and never hardcode a model name: offer the models the platform's dispatch accepts at run time. Superpowers' per-platform tool references follow the same rule.
-- `implement-issues` never merges and never pushes the base branch; `review-prs` never approves, requests changes, or pushes to a PR branch; `answer-pr-reviews` never force-pushes, resolves a thread, approves, merges, or marks a PR ready. All three hand the final call to the user — keep it that way. Marking a PR ready is not accepting it: `implement-issues` marks its drafts ready once their review is answered, and merging stays the user's. The review round reuses skills rather than restating them: a new agent runs `review-prs`, and the agent that built the issue answers with `answer-pr-reviews` — it, never `review-prs`, pushes the fixes, and it never reviews its own PR. Don't add briefs that re-describe what those skills already do.
+- `implement-issues` never merges and never pushes the base branch; `review-prs` never approves, requests changes, or pushes to a PR branch; `answer-pr-reviews` never force-pushes, resolves a thread, approves, merges, or marks a PR ready. All three hand the final call to the user — keep it that way. Marking a PR ready is not accepting it: `implement-issues` marks its drafts ready once their review is answered and their CI passes, and merging stays the user's. The review round reuses skills rather than restating them: a new agent runs `review-prs`, and the agent that built the issue answers with `answer-pr-reviews` — it, never `review-prs`, pushes the fixes, and it never reviews its own PR. Don't add briefs that re-describe what those skills already do.
 - `answer-pr-reviews` is a proxy: it points Superpowers' `receiving-code-review` at pull requests — picking them, gathering the unanswered feedback, pushing, and replying — and leaves every judgment about the feedback to that skill. Don't grow it a copy of that skill's rules. Its replies end with `<!-- answer-pr-reviews -->`, which is how it tells answered threads from unanswered ones when one `gh` account posts both the review and the replies; don't swap it for an author check.
 - `brainstorm-to-issue` carries a "Non-Claude-Code version (plain prompt)" section for agents without skill discovery. Keep it in sync with `assets/intent-issue.md`.
 - `anti-koshary` carries one too, condensed from its own body — it started life as a paste-able prompt, and that form stays supported. Keep it in sync with the seven Pass 1 sections.
