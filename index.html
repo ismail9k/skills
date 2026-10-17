@@ -3,76 +3,155 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="How implement-issues takes one issue to a ready pull request at low, medium and high effort, with plan approval and a model for each job.">
-<title>Implement-Issues Flow</title>
+<meta name="description" content="Documentation for the ismail9k/skills agent skills. implement-issues shows how one issue becomes a ready pull request at the effort level and plan-approval setting you pick.">
+<title>ismail9k/skills</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one reading column for prose; figures and tables break out wider and scroll sideways on phones. */
 :root {
   --bg: #f5f6f9; --surface: #ffffff; --fg: #1a2130; --muted: #586274; --line: #d4d9e2; --band: #eceff4;
-  --accent: #2f55c4;
+  --accent: #2f55c4; --on-solid: #ffffff;
   --all: #5a6476;   --all-bg: #f1f3f7;
   --low: #0e7566;   --low-bg: #daf2ed;
-  --mh: #a8701a;    --mh-bg: #fbf0dc;
+  --medium: #a8701a; --medium-bg: #fbf0dc;
   --high: #b02a43;  --high-bg: #fbe4e8;
   --gate: #3456c0;  --gate-bg: #e4eafb; --gate-band: #eef2fd;
   --display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
   --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --side-w: 268px;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #11151c; --surface: #191f28; --fg: #e5e9f0; --muted: #9ba4b4; --line: #2c3441; --band: #161b23;
-  --accent: #8aa4f7;
+  --accent: #8aa4f7; --on-solid: #11151c;
   --all: #a3abb9;   --all-bg: #222833;
   --low: #43c6b1;   --low-bg: #10302a;
-  --mh: #e2a84d;    --mh-bg: #2e2413;
+  --medium: #e2a84d; --medium-bg: #2e2413;
   --high: #ef7088;  --high-bg: #35171e;
   --gate: #86a0f6;  --gate-bg: #19223b; --gate-band: #151b2b;
   color-scheme: dark;
 } }
 :root[data-theme="dark"] {
   --bg: #11151c; --surface: #191f28; --fg: #e5e9f0; --muted: #9ba4b4; --line: #2c3441; --band: #161b23;
-  --accent: #8aa4f7;
+  --accent: #8aa4f7; --on-solid: #11151c;
   --all: #a3abb9;   --all-bg: #222833;
   --low: #43c6b1;   --low-bg: #10302a;
-  --mh: #e2a84d;    --mh-bg: #2e2413;
+  --medium: #e2a84d; --medium-bg: #2e2413;
   --high: #ef7088;  --high-bg: #35171e;
   --gate: #86a0f6;  --gate-bg: #19223b; --gate-band: #151b2b;
   color-scheme: dark;
 }
-body { background: var(--bg); color: var(--fg); font: 15px/1.6 var(--body); }
-.wrap { max-width: 1180px; margin: 0 auto; padding-block: 40px 64px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.prose { max-width: 68ch; }
+/* The chosen effort level drives one colour pair used across every figure. */
+body, body[data-effort="medium"] { --lvl: var(--medium); --lvl-bg: var(--medium-bg); }
+body[data-effort="low"] { --lvl: var(--low); --lvl-bg: var(--low-bg); }
+body[data-effort="high"] { --lvl: var(--high); --lvl-bg: var(--high-bg); }
+
+* { box-sizing: border-box; }
+html { scroll-padding-top: 76px; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--body); }
+a { color: var(--accent); }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+
+/* ---------- Shell: sidebar + main ---------- */
+.layout { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100vh; }
+.side { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--line);
+  padding: 22px 14px 28px; padding-left: max(14px, env(safe-area-inset-left, 0px)); }
+.brand { display: block; font: 700 19px/1.2 var(--display); color: var(--fg); text-decoration: none; padding: 0 8px; }
+.brand small { display: block; font: 400 12.5px/1.4 var(--body); color: var(--muted); margin-top: 4px; }
+.navgroup { margin-top: 22px; }
+.navgroup h4 { margin: 0 0 6px; padding: 0 8px; font: 500 11px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.navgroup ul { list-style: none; margin: 0; padding: 0; }
+.nav-skill { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 8px; border-radius: 6px;
+  color: var(--fg); text-decoration: none; font: 500 14px/1.35 var(--mono); }
+.nav-skill:hover { background: var(--band); }
+.nav-skill.soon { color: var(--muted); }
+.nav-skill .tag { font: 500 10px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 6px; flex: none; }
+.nav-skill[aria-current="page"] { background: var(--gate-bg); color: var(--accent); }
+.subnav { list-style: none; margin: 4px 0 6px 10px; padding: 0 0 0 10px; border-left: 1px solid var(--line); }
+.subnav a { display: block; padding: 3px 8px; font-size: 13.5px; color: var(--muted); text-decoration: none; border-radius: 5px; }
+.subnav a:hover { color: var(--fg); }
+.subnav a.active { color: var(--fg); font-weight: 600; }
+.side-foot { margin-top: 26px; padding: 14px 8px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+
+.topbar { display: none; }
+.scrim { display: none; }
+main { min-width: 0; }
+.content { max-width: 1120px; padding: 0 36px 72px; padding-right: max(36px, env(safe-area-inset-right, 0px)); }
+
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; }
+  .side { position: fixed; z-index: 60; inset: 0 auto 0 0; width: min(300px, 86vw); transform: translateX(-102%); transition: transform .2s ease; }
+  body.nav-open .side { transform: none; box-shadow: 0 0 40px rgba(0,0,0,.25); }
+  body.nav-open .scrim { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(10,14,20,.4); }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    background: var(--surface); border-bottom: 1px solid var(--line); }
+  .topbar .brand { padding: 0; font-size: 17px; }
+  .menu-btn { font: 500 13px var(--mono); background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+  .content { padding: 0 16px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { .side { transition: none; } * { scroll-behavior: auto !important; } }
+
+/* ---------- Config bar ---------- */
+.cfgbar { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px;
+  margin: 0 -36px; padding: 12px 36px; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+@media (max-width: 920px) { .cfgbar { margin: 0 -16px; padding: 10px 16px; } }
+.ctl { display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 6px 14px; font: 500 13.5px/1.2 var(--mono); color: var(--fg); }
+.seg label + label span { border-left: 1px solid var(--line); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -3px; }
+.seg input[value="low"]:checked + span { background: var(--low); color: var(--on-solid); }
+.seg input[value="medium"]:checked + span { background: var(--medium); color: var(--on-solid); }
+.seg input[value="high"]:checked + span { background: var(--high); color: var(--on-solid); }
+.switch { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; color: var(--fg); font-size: 13.5px; position: relative; }
+.switch input { position: absolute; opacity: 0; width: 38px; height: 22px; margin: 0; cursor: pointer; }
+.switch .track { width: 38px; height: 22px; border-radius: 11px; background: var(--line); position: relative; transition: background .15s; flex: none; }
+.switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.switch input:checked + .track { background: var(--gate); }
+.switch input:checked + .track::after { transform: translateX(16px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cfg-sum { font: 500 12.5px var(--mono); color: var(--muted); margin-left: auto; }
+@media (max-width: 640px) {
+  .cfg-sum, .ctl-label { display: none; }
+  .cfgbar { gap: 8px 14px; }
+  .seg span { padding: 6px 10px; }
+}
+
+/* ---------- Content ---------- */
+.prose { max-width: 70ch; }
+.page-head { padding-top: 34px; }
 h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
-h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; letter-spacing: -0.01em; }
+h1 { font-size: clamp(30px, 5vw, 42px); font-weight: 700; letter-spacing: -0.01em; }
 h2 { font-size: 24px; font-weight: 600; margin-top: 56px; }
 h3 { font-size: 17px; font-weight: 600; margin-top: 28px; }
 p { margin: 12px 0 0; }
 code { font-family: var(--mono); font-size: 0.88em; background: var(--band); padding: 1px 5px; border-radius: 4px; }
 .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .lede { font-size: 17px; color: var(--muted); margin-top: 14px; }
-.cmd { display: inline-block; margin-top: 18px; font: 500 15px var(--mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; }
-.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 28px; }
-.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; min-width: 0; }
+.cmd { display: inline-block; margin-top: 18px; font: 500 15px var(--mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; max-width: 100%; overflow-x: auto; white-space: nowrap; }
+.lvl { font-weight: 600; color: var(--lvl); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 26px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--lvl); border-radius: 8px; padding: 12px 16px 14px; min-width: 0; }
 .fact .lbl { display: block; color: var(--muted); font-size: 13.5px; line-height: 1.4; }
-.fact .vals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
-.fact .vals div { min-width: 0; }
-.fact b { display: block; font: 600 20px/1.15 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.fact small { display: block; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-top: 2px; }
-.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-top: 18px; }
+.fact b { display: block; margin-top: 8px; font: 600 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.fact b.gate { color: var(--gate); }
+.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 18px; }
 .setting { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; min-width: 0; }
 .setting h3 { margin: 0; font-size: 16px; }
 .setting p { margin-top: 6px; font-size: 14px; color: var(--muted); }
 .note { background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; padding: 12px 16px; margin-top: 18px; font-size: 14px; color: var(--muted); max-width: 80ch; }
+.note button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 20px; font-size: 13.5px; }
 .legend span { display: inline-flex; align-items: center; gap: 7px; }
 .sw { width: 14px; height: 14px; border-radius: 3px; border: 2px solid; flex: none; }
 .sw.c-all { background: var(--all-bg); border-color: var(--all); }
-.sw.c-low { background: var(--low-bg); border-color: var(--low); }
-.sw.c-mh { background: var(--mh-bg); border-color: var(--mh); }
-.sw.c-high { background: var(--high-bg); border-color: var(--high); }
+.sw.c-lvl { background: var(--lvl-bg); border-color: var(--lvl); }
 .sw.c-gate { background: var(--gate-bg); border-color: var(--gate); border-style: dashed; }
 .glyph { width: 12px; height: 12px; flex: none; display: inline-block; }
 .glyph.c { border-radius: 50%; background: var(--fg); }
@@ -90,10 +169,9 @@ svg .lhs, svg .phs { fill: var(--muted); font-size: 11px; }
 svg .ph { fill: var(--fg); font: 600 15px var(--display); }
 svg .box { stroke-width: 1.6; }
 svg .c-all { fill: var(--all-bg); stroke: var(--all); }
-svg .c-low { fill: var(--low-bg); stroke: var(--low); }
-svg .c-mh { fill: var(--mh-bg); stroke: var(--mh); }
-svg .c-high { fill: var(--high-bg); stroke: var(--high); }
+svg .c-lvl { fill: var(--lvl-bg); stroke: var(--lvl); }
 svg .c-gate { fill: var(--gate-bg); stroke: var(--gate); stroke-dasharray: 5 3; }
+svg .c-high { fill: var(--high-bg); stroke: var(--high); }
 svg .bt { fill: var(--fg); font-size: 12.5px; font-weight: 600; }
 svg .bd { fill: var(--muted); font-size: 11.5px; }
 svg .el { fill: var(--muted); font: 500 10.5px var(--mono); }
@@ -104,6 +182,7 @@ svg .eg { fill: none; stroke: var(--gate); stroke-width: 1.3; stroke-dasharray: 
 svg .ah { fill: var(--fg); opacity: 0.8; }
 svg .ahf { fill: var(--muted); }
 svg .ahg { fill: var(--gate); }
+svg .ahd { fill: var(--high); }
 svg .mk-checks { fill: var(--fg); }
 svg .mk-diff { fill: var(--accent); }
 svg .dia { fill: var(--surface); stroke: var(--fg); stroke-width: 1.3; }
@@ -112,27 +191,35 @@ svg .tick { fill: var(--muted); font: 11px var(--mono); }
 svg .bar { stroke-width: 1; }
 svg .seg { fill: var(--fg); font-size: 10.5px; font-weight: 500; pointer-events: none; }
 svg .val { fill: var(--fg); font: 500 11.5px var(--mono); font-variant-numeric: tabular-nums; }
-svg .line { fill: none; stroke-width: 2.4; }
-svg .line.c-low { stroke: var(--low); } svg .line.c-mh { stroke: var(--mh); } svg .line.c-high { stroke: var(--high); }
-svg .pt { stroke-width: 2; }
+svg .line { fill: none; stroke: var(--lvl); stroke-width: 2.6; }
+svg .pt { fill: var(--lvl-bg); stroke: var(--lvl); stroke-width: 2; }
 .tablewrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
-table { border-collapse: collapse; width: 100%; min-width: 680px; font-size: 14px; }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
 th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font: 500 11.5px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--band); }
 tr:last-child td { border-bottom: 0; }
-td.n { font-variant-numeric: tabular-nums; }
-table.heat td.h { text-align: center; font-weight: 500; }
-td.h1 { background: var(--low-bg); color: var(--fg); }
-td.h2 { background: var(--mh-bg); color: var(--fg); }
-td.h3 { background: var(--high-bg); color: var(--fg); }
+td.h { text-align: center; font-weight: 500; }
 table.dots td.m { text-align: center; white-space: nowrap; }
 td .glyph { vertical-align: middle; }
-td .no { color: var(--line); }
+td .no { color: var(--muted); opacity: .6; }
+/* Comparison tables: the chosen column is lit, the others step back. */
+table.cmp [data-col] { transition: opacity .15s, background .15s; }
+body[data-effort="low"] table.cmp [data-col]:not([data-col="low"]),
+body[data-effort="medium"] table.cmp [data-col]:not([data-col="medium"]),
+body[data-effort="high"] table.cmp [data-col]:not([data-col="high"]) { opacity: 0.38; }
+body[data-effort="low"] table.cmp td[data-col="low"],
+body[data-effort="medium"] table.cmp td[data-col="medium"],
+body[data-effort="high"] table.cmp td[data-col="high"] { background: var(--lvl-bg); }
+body[data-effort="low"] table.cmp th[data-col="low"],
+body[data-effort="medium"] table.cmp th[data-col="medium"],
+body[data-effort="high"] table.cmp th[data-col="high"] { color: var(--lvl); box-shadow: inset 0 -2px 0 var(--lvl); }
+tr.unused td { opacity: 0.45; }
 .chip { display: inline-block; font-size: 12px; font-weight: 500; padding: 1px 9px; border-radius: 999px; border: 1.5px solid; white-space: nowrap; }
 .chip.c-all { color: var(--all); background: var(--all-bg); }
 .chip.c-low { color: var(--low); background: var(--low-bg); }
-.chip.c-mh { color: var(--mh); background: var(--mh-bg); }
+.chip.c-medium { color: var(--medium); background: var(--medium-bg); }
 .chip.c-high { color: var(--high); background: var(--high-bg); }
+.chip.c-off { color: var(--muted); background: transparent; border-style: dashed; }
 ol.stages { padding-left: 0; list-style: none; counter-reset: st; margin: 18px 0 0; display: grid; gap: 14px; }
 ol.stages > li { counter-increment: st; display: grid; grid-template-columns: 2.4em 1fr; gap: 4px 12px; }
 ol.stages > li::before { content: counter(st); font: 600 15px/1.6 var(--mono); color: var(--accent); }
@@ -140,289 +227,103 @@ ol.stages > li > div { min-width: 0; }
 ol.stages ul { margin: 6px 0 0; padding-left: 18px; }
 ol.stages li li { margin-top: 3px; }
 .who { font-size: 13px; color: var(--muted); }
-.spots { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 18px; }
+.spots { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 18px; }
 .spot { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; min-width: 0; }
 .spot h3 { margin: 0; font-size: 15.5px; }
 .spot p { margin-top: 6px; font-size: 14px; color: var(--muted); }
 .foot { font-size: 13px; color: var(--muted); margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; max-width: 80ch; }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
-</style>
-<style>
-:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-@media (prefers-color-scheme: dark) { :root { color-scheme: dark; } }
-body { margin: 0; }
-img { max-width: 100%; }
-[hidden] { display: none !important; }
+.soon-card { margin-top: 26px; background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 20px 22px; max-width: 70ch; }
+.soon-card h2 { margin: 0; font-size: 19px; }
+.soon-card p { color: var(--muted); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.meta span { font: 500 12px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; background: var(--surface); }
 </style>
 </head>
-<body>
-<div class="wrap">
-  <header class="prose">
-    <div class="eyebrow">ismail9k/skills · implement-issues</div>
-    <h1>Implement-Issues Flow</h1>
-    <p class="lede">How agents take one issue from the queue to a ready pull request: who does each step, how the effort level changes the work, where you approve plans, and which model does which job.</p>
-    <div class="cmd">/implement-issues low | medium | high</div>
-  </header>
+<body data-effort="medium" data-approval="off">
+<div class="topbar">
+  <a class="brand" href="#implement-issues">ismail9k/skills</a>
+  <button class="menu-btn" type="button" aria-controls="side" aria-expanded="false" id="menuBtn">Menu</button>
+</div>
+<div class="scrim" id="scrim"></div>
+<div class="layout">
+  <nav class="side" id="side" aria-label="Skills">
+    <a class="brand" href="#implement-issues">ismail9k/skills<small>Agent skills for Superpowers and any repository</small></a>
+    <div id="nav"></div>
+    <div class="side-foot">Source on <a href="https://github.com/ismail9k/skills">GitHub</a></div>
+  </nav>
 
-  <h2>The three settings</h2>
-  <div class="settings">
-    <div class="setting"><h3>Effort</h3><p>Low, medium or high. It sets how much review and checking each issue gets. Pass it when you start the run. Without it, the run uses the saved setting, and if there is none, it asks you.</p></div>
-    <div class="setting"><h3>Plan approval</h3><p>When it's on, each issue stops after its spec and plan and waits on a draft plan PR. You comment or add the <code>plan-approved</code> label, and a later run builds it.</p></div>
-    <div class="setting"><h3>Models</h3><p>One model for each of ten jobs, such as a cheap one for implementation and a strong one for review. Each is set as a tier (cheap, standard or strong) or an exact model name.</p></div>
-  </div>
-  <p class="prose">Plan approval and models are saved in <code>docs/agents/delivery.md</code> in your repository. The run asks only for what that file doesn't settle, and offers to save your answers after showing you the change. There is no separate setup step.</p>
+  <main id="main">
+    <div class="content">
+      <!-- Placeholder pages for the other skills are rendered here from SKILLS below. -->
+      <div id="placeholders"></div>
 
-  <div class="facts">
-    <div class="fact"><span class="lbl">Agents started per issue, for a plan of N tasks</span>
-      <div class="vals"><div><b>5</b><small>low</small></div><div><b>2N+5</b><small>medium</small></div><div><b>2N+6</b><small>high</small></div></div></div>
-    <div class="fact"><span class="lbl">Full local check runs after the build, plus CI</span>
-      <div class="vals"><div><b>2</b><small>low</small></div><div><b>3</b><small>medium</small></div><div><b>4</b><small>high</small></div></div></div>
-    <div class="fact"><span class="lbl">Full code reads of the branch diff after the build</span>
-      <div class="vals"><div><b>2</b><small>low</small></div><div><b>2</b><small>medium</small></div><div><b>3</b><small>high</small></div></div></div>
-    <div class="fact"><span class="lbl">Jobs whose model you choose</span>
-      <div class="vals"><div><b>10</b><small>of 10</small></div></div></div>
-  </div>
-  <div class="note">Before this change, every issue got roughly today’s high-effort flow: one agent did both planning and building, with 2N + 5 agents, 3 full code reads, and 4 local check runs plus CI. You could choose the model for only 1 of 12 jobs, the implementer.</div>
+      <article class="page" data-page="implement-issues" hidden>
+        <div class="cfgbar" role="group" aria-label="Configuration">
+          <span class="ctl"><span class="ctl-label">Effort</span>
+            <span class="seg" role="radiogroup" aria-label="Effort">
+              <label><input type="radio" name="effort" value="low"><span>low</span></label>
+              <label><input type="radio" name="effort" value="medium" checked><span>medium</span></label>
+              <label><input type="radio" name="effort" value="high"><span>high</span></label>
+            </span>
+          </span>
+          <label class="switch"><input type="checkbox" role="switch" id="approval"><span class="track"></span>Plan approval</label>
+          <span class="cfg-sum" id="cfgSum" aria-live="polite"></span>
+        </div>
 
-  <h2>Who runs what</h2>
-  <div class="prose"><p>Each column is one agent, and time runs downward. A box’s color says at which effort levels that step happens. The blue band runs only with plan approval on.</p></div>
-  <div class="legend" aria-label="Legend">
-    <span><i class="sw c-all"></i>Every effort</span>
-    <span><i class="sw c-low"></i>Low only</span>
-    <span><i class="sw c-mh"></i>Medium and high</span>
-    <span><i class="sw c-high"></i>High only</span>
-    <span><i class="sw c-gate"></i>Plan approval on</span>
-    <span><i class="glyph c"></i>Runs the full checks</span>
-    <span><i class="glyph d"></i>Reads the whole diff</span>
-  </div>
-  <figure>
-    <div class="scroll"><svg class="fig" viewBox="0 0 1144 2054" role="img" aria-labelledby="swt swd" style="min-width:900px">
-<title id="swt">One issue through implement-issues, by agent</title>
-<desc id="swd">Swimlane chart with five lanes: dispatcher, planner, build lead, Superpowers subagents, and review agent. Box colors say at which effort levels each step runs.</desc>
-<defs>
-<marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
-<marker id="a1f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahf"/></marker>
-<marker id="a1g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahg"/></marker>
-</defs>
-<rect x="0" y="64.0" width="1144" height="172.0" class="band"/>
-<text x="14" y="92" class="ph">Queue</text>
-<text x="14" y="108" class="phs">Stages 1–2</text>
-<text x="14" y="264" class="ph">Plan</text>
-<text x="14" y="280" class="phs">Stage 3</text>
-<rect x="0" y="556.0" width="1144" height="246.0" class="band-gate"/>
-<text x="14" y="584" class="ph">Approval</text>
-<text x="14" y="600" class="phs">if turned on</text>
-<text x="14" y="830" class="ph">Build</text>
-<text x="14" y="846" class="phs">Stage 4</text>
-<rect x="0" y="1196.0" width="1144" height="98.0" class="band"/>
-<text x="14" y="1224" class="ph">Verify</text>
-<text x="14" y="1240" class="phs">Stage 5</text>
-<text x="14" y="1322" class="ph">Draft PR</text>
-<text x="14" y="1338" class="phs">Stage 6</text>
-<rect x="0" y="1392.0" width="1144" height="246.0" class="band"/>
-<text x="14" y="1420" class="ph">Review</text>
-<text x="14" y="1436" class="phs">Stage 7</text>
-<text x="14" y="1666" class="ph">Answer</text>
-<text x="14" y="1682" class="phs">Stage 8</text>
-<rect x="0" y="1958.0" width="1144" height="94.0" class="band"/>
-<text x="14" y="1986" class="ph">Report</text>
-<text x="14" y="2002" class="phs">Stage 9</text>
-<line x1="222.0" y1="68" x2="222.0" y2="2050" class="guide"/>
-<rect x="128" y="10" width="188" height="44" rx="6" class="lanehead"/>
-<text x="139" y="29" class="lh">Dispatcher</text>
-<text x="139" y="45" class="lhs">your session</text>
-<line x1="426.0" y1="68" x2="426.0" y2="2050" class="guide"/>
-<rect x="332" y="10" width="188" height="44" rx="6" class="lanehead"/>
-<text x="343" y="29" class="lh">Planner</text>
-<text x="343" y="45" class="lhs">planner seat</text>
-<line x1="630.0" y1="68" x2="630.0" y2="2050" class="guide"/>
-<rect x="536" y="10" width="188" height="44" rx="6" class="lanehead"/>
-<text x="547" y="29" class="lh">Build lead</text>
-<text x="547" y="45" class="lhs">build-lead seat</text>
-<line x1="834.0" y1="68" x2="834.0" y2="2050" class="guide"/>
-<rect x="740" y="10" width="188" height="44" rx="6" class="lanehead"/>
-<text x="751" y="29" class="lh">Superpowers subagents</text>
-<text x="751" y="45" class="lhs">their own seats</text>
-<line x1="1038.0" y1="68" x2="1038.0" y2="2050" class="guide"/>
-<rect x="944" y="10" width="188" height="44" rx="6" class="lanehead"/>
-<text x="955" y="29" class="lh">Review agent</text>
-<text x="955" y="45" class="lhs">pr-reviewer seat</text>
-<path d="M222.0,138.0 L222.0,152.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M222.0,212.0 L222.0,250.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M316.0,280.0 L426.0,280.0 L426.0,324.0" class="e" marker-end="url(#a1)"/>
-<text x="322.0" y="274.0" class="el">dispatch</text>
-<path d="M426.0,384.0 L426.0,398.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M426.0,458.0 L426.0,472.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M520.0,428.0 L834.0,428.0 L834.0,398.0" class="e" marker-end="url(#a1)"/>
-<path d="M332.0,502.0 L222.0,502.0 L222.0,570.0" class="e" marker-end="url(#a1)"/>
-<text x="228.0" y="496.0" class="el">report</text>
-<path d="M316.0,600.0 L426.0,600.0 L426.0,644.0" class="eg" marker-end="url(#a1g)"/>
-<text x="322.0" y="594.0" class="el">your comments</text>
-<path d="M332.0,674.0 L222.0,674.0 L222.0,718.0" class="eg" marker-end="url(#a1g)"/>
-<text x="228.0" y="668.0" class="el">label added</text>
-<path d="M172.0,630.0 L172.0,718.0" class="eg" marker-end="url(#a1g)"/>
-<path d="M222.0,778.0 L222.0,816.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M316.0,846.0 L630.0,846.0 L630.0,890.0" class="e" marker-end="url(#a1)"/>
-<text x="636.0" y="840.0" class="el">low</text>
-<path d="M272.0,876.0 L272.0,994.0 L536.0,994.0" class="e" marker-end="url(#a1)"/>
-<text x="278.0" y="988.0" class="el">medium, high</text>
-<path d="M724.0,994.0 L740.0,994.0" class="e" marker-end="url(#a1)"/>
-<path d="M724.0,920.0 L884.0,920.0 L884.0,1038.0" class="e" marker-end="url(#a1)"/>
-<path d="M804.0,1024.0 L804.0,1038.0" class="e" marker-end="url(#a1)"/>
-<path d="M740.0,1068.0 L630.0,1068.0 L630.0,1112.0" class="e" marker-end="url(#a1)"/>
-<path d="M536.0,1142.0 L222.0,1142.0 L222.0,1210.0" class="e" marker-end="url(#a1)"/>
-<text x="228.0" y="1136.0" class="el">report</text>
-<path d="M222.0,1270.0 L222.0,1308.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M316.0,1338.0 L1038.0,1338.0 L1038.0,1406.0" class="e" marker-end="url(#a1)"/>
-<text x="324.0" y="1332.0" class="el">draft PR open; dispatch the reviewer</text>
-<path d="M1038.0,1466.0 L1038.0,1480.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M1038.0,1540.0 L1038.0,1554.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M944.0,1584.0 L222.0,1584.0 L222.0,1652.0" class="e" marker-end="url(#a1)"/>
-<text x="228.0" y="1578.0" class="el">review posted</text>
-<path d="M316.0,1682.0 L536.0,1682.0" class="e" marker-end="url(#a1)"/>
-<path d="M585.0,1712.0 L585.0,1756.0 L316.0,1756.0" class="e" marker-end="url(#a1)"/>
-<text x="590.0" y="1750.0" class="el">pushed</text>
-<path d="M222.0,1786.0 L222.0,1800.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M222.0,1860.0 L222.0,1874.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M222.0,1934.0 L222.0,1972.0" class="ef" marker-end="url(#a1f)"/>
-<path d="M316.0,1830.0 L675.0,1830.0 L675.0,1712.0" class="ed" marker-end="url(#a1)"/>
-<text x="681.0" y="1824.0" class="el">CI fails</text>
-<rect x="128" y="78" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="97" class="bt">Read the queue</text>
-<text x="138" y="113" class="bd">Issues, PRs, branches;</text>
-<text x="138" y="127" class="bd">plan, revise, build, skip</text>
-<rect x="128" y="152" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="171" class="bt">Settle the settings</text>
-<text x="138" y="187" class="bd">Effort, approval, each seat;</text>
-<text x="138" y="201" class="bd">offer to save delivery.md</text>
-<rect x="128" y="250" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="269" class="bt">Branch and brief</text>
-<text x="138" y="285" class="bd">planner-brief.md with</text>
-<text x="138" y="299" class="bd">the full issue body</text>
-<rect x="332" y="324" width="188" height="60" rx="7" class="box c-all"/>
-<text x="342" y="343" class="bt">brainstorming</text>
-<text x="342" y="359" class="bd">Seeded by the bridge;</text>
-<text x="342" y="373" class="bd">it sizes the work itself</text>
-<rect x="332" y="398" width="188" height="60" rx="7" class="box c-all"/>
-<text x="342" y="417" class="bt">Spec, for a project</text>
-<text x="342" y="433" class="bd">A small change gets none:</text>
-<text x="342" y="447" class="bd">its notes open the plan</text>
-<rect x="740" y="398" width="188" height="60" rx="7" class="box c-all"/>
-<text x="750" y="417" class="bt">Spec check</text>
-<text x="750" y="433" class="bd">spec-check seat; only</text>
-<text x="750" y="447" class="bd">when a spec was written</text>
-<rect x="332" y="472" width="188" height="60" rx="7" class="box c-all"/>
-<text x="342" y="491" class="bt">writing-plans</text>
-<text x="342" y="507" class="bd">Plan with Intent-Issue;</text>
-<text x="342" y="521" class="bd">commit both and stop</text>
-<rect x="128" y="570" width="188" height="60" rx="7" class="box c-gate"/>
-<text x="138" y="589" class="bt">Open the plan PR</text>
-<text x="138" y="605" class="bd">Draft, plan-pr-body.md;</text>
-<text x="138" y="619" class="bd">the issue waits</text>
-<rect x="332" y="644" width="188" height="60" rx="7" class="box c-gate"/>
-<text x="342" y="663" class="bt">Revise, later run</text>
-<text x="342" y="679" class="bd">answer-pr-reviews on your</text>
-<text x="342" y="693" class="bd">comments: 1, 2 or 3 rounds</text>
-<circle cx="508" cy="657" r="5" class="mk-checks"><title>Runs the full tests, lint, typecheck</title></circle>
-<rect x="128" y="718" width="188" height="60" rx="7" class="box c-gate"/>
-<text x="138" y="737" class="bt">plan-approved found</text>
-<text x="138" y="753" class="bd">You added the label; a</text>
-<text x="138" y="767" class="bd">later run builds it</text>
-<rect x="128" y="816" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="835" class="bt">Fill build-brief</text>
-<text x="138" y="851" class="bd">Spec, plan, effort, and</text>
-<text x="138" y="865" class="bd">five Superpowers seats</text>
-<rect x="536" y="890" width="188" height="60" rx="7" class="box c-low"/>
-<text x="546" y="909" class="bt">executing-plans</text>
-<text x="546" y="925" class="bd">Low: builds every task</text>
-<text x="546" y="939" class="bd">itself, tests first</text>
-<circle cx="712" cy="903" r="5" class="mk-checks"><title>Runs the full tests, lint, typecheck</title></circle>
-<rect x="536" y="964" width="188" height="60" rx="7" class="box c-mh"/>
-<text x="546" y="983" class="bt">subagent-driven-dev.</text>
-<text x="546" y="999" class="bd">Medium and high: the</text>
-<text x="546" y="1013" class="bd">per-task loop below</text>
-<rect x="740" y="964" width="188" height="60" rx="7" class="box c-mh"/>
-<text x="750" y="983" class="bt">Implement and review</text>
-<text x="750" y="999" class="bd">Each task; fix rounds</text>
-<text x="750" y="1013" class="bd">2 at medium, 5 at high</text>
-<circle cx="916" cy="977" r="5" class="mk-checks"><title>Runs the full tests, lint, typecheck</title></circle>
-<rect x="740" y="1038" width="188" height="60" rx="7" class="box c-all"/>
-<text x="750" y="1057" class="bt">Whole-branch review</text>
-<text x="750" y="1073" class="bd">final-reviewer seat; one</text>
-<text x="750" y="1087" class="bd">fix pass if it finds any</text>
-<path d="M916,1045 L922,1051 L916,1057 L910,1051 z" class="mk-diff"><title>Reads the whole branch diff</title></path>
-<rect x="536" y="1112" width="188" height="60" rx="7" class="box c-all"/>
-<text x="546" y="1131" class="bt">Report back</text>
-<text x="546" y="1147" class="bd">Stops before finishing</text>
-<text x="546" y="1161" class="bd">the branch</text>
-<rect x="128" y="1210" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="1229" class="bt">Verify the branch</text>
-<text x="138" y="1245" class="bd">Log and diff; tests, lint,</text>
-<text x="138" y="1259" class="bd">typecheck into log files</text>
-<circle cx="304" cy="1223" r="5" class="mk-checks"><title>Runs the full tests, lint, typecheck</title></circle>
-<path d="M288,1217 L294,1223 L288,1229 L282,1223 z" class="mk-diff"><title>Reads the whole branch diff</title></path>
-<rect x="128" y="1308" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="1327" class="bt">Open the draft PR</text>
-<text x="138" y="1343" class="bd">Or convert the plan PR;</text>
-<text x="138" y="1357" class="bd">suite run again at high</text>
-<rect x="944" y="1406" width="188" height="60" rx="7" class="box c-all"/>
-<text x="954" y="1425" class="bt">Intent pass</text>
-<text x="954" y="1441" class="bd">Reads the PR, its issue,</text>
-<text x="954" y="1455" class="bd">and existing comments</text>
-<rect x="944" y="1480" width="188" height="60" rx="7" class="box c-high"/>
-<text x="954" y="1499" class="bt">Code pass</text>
-<text x="954" y="1515" class="bd">pr-code-reviewer seat;</text>
-<text x="954" y="1529" class="bd">the same diff again</text>
-<path d="M1120,1487 L1126,1493 L1120,1499 L1114,1493 z" class="mk-diff"><title>Reads the whole branch diff</title></path>
-<rect x="944" y="1554" width="188" height="60" rx="7" class="box c-all"/>
-<text x="954" y="1573" class="bt">Check and post</text>
-<text x="954" y="1589" class="bd">Confirms each finding;</text>
-<text x="954" y="1603" class="bd">a COMMENT review</text>
-<rect x="128" y="1652" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="1671" class="bt">Hand back the review</text>
-<text x="138" y="1687" class="bd">To the build lead, in</text>
-<text x="138" y="1701" class="bd">its own worktree</text>
-<rect x="536" y="1652" width="188" height="60" rx="7" class="box c-all"/>
-<text x="546" y="1671" class="bt">answer-pr-reviews</text>
-<text x="546" y="1687" class="bd">Fix, check, push, and</text>
-<text x="546" y="1701" class="bd">reply to each comment</text>
-<circle cx="712" cy="1665" r="5" class="mk-checks"><title>Runs the full tests, lint, typecheck</title></circle>
-<rect x="128" y="1726" width="188" height="60" rx="7" class="box c-mh"/>
-<text x="138" y="1745" class="bt">Recheck pushed head</text>
-<text x="138" y="1761" class="bd">Medium and high; at low</text>
-<text x="138" y="1775" class="bd">only when there is no CI</text>
-<circle cx="304" cy="1739" r="5" class="mk-checks"><title>Runs the full tests, lint, typecheck</title></circle>
-<rect x="128" y="1800" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="1819" class="bt">Wait for CI</text>
-<text x="138" y="1835" class="bd">Failures go back to the</text>
-<text x="138" y="1849" class="bd">build lead: 1, 2, 3 tries</text>
-<circle cx="304" cy="1813" r="5" class="mk-checks"><title>Runs the full tests, lint, typecheck</title></circle>
-<rect x="128" y="1874" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="1893" class="bt">Mark ready</text>
-<text x="138" y="1909" class="bd">gh pr ready; you merge</text>
-<rect x="128" y="1972" width="188" height="60" rx="7" class="box c-all"/>
-<text x="138" y="1991" class="bt">Report</text>
-<text x="138" y="2007" class="bd">Effort, plan state, and</text>
-<text x="138" y="2021" class="bd">every seat&#x27;s model</text>
-</svg></div>
-    <figcaption>Figure 1. One issue end to end. The planner ends once the plan is written. The build lead stays alive to answer the review and fix CI. The review agent is always a new agent, so no one reviews their own work.</figcaption>
-  </figure>
+        <header class="page-head prose">
+          <div class="eyebrow">Delivery · superpowers-issues</div>
+          <h1>implement-issues</h1>
+          <p class="lede">How agents take one issue from the queue to a ready pull request: who does each step, where you approve plans, and which model does which job. Everything below follows the effort and plan approval you pick in the bar above.</p>
+          <div class="cmd">/implement-issues <span class="lvl" data-v="low|medium|high"></span></div>
+        </header>
 
-  <h2>Approving plans</h2>
-  <div class="prose"><p>With plan approval on, an issue spans two or more runs. Nothing needs to stay open in between, because the plan PR on GitHub holds the issue’s state.</p></div>
-  <figure>
-    <div class="scroll"><svg class="fig" viewBox="0 0 860 330" role="img" aria-labelledby="spt spd" style="min-width:700px">
+        <h2 id="ii-settings">The three settings</h2>
+        <div class="settings">
+          <div class="setting"><h3>Effort</h3><p>Low, medium or high. It sets how much review and checking each issue gets. Pass it when you start the run. Without it, the run uses the saved setting, and if there is none, it asks you.</p></div>
+          <div class="setting"><h3>Plan approval</h3><p>When it's on, each issue stops after its spec and plan and waits on a draft plan PR. You comment or add the <code>plan-approved</code> label, and a later run builds it.</p></div>
+          <div class="setting"><h3>Models</h3><p>One model for each of ten jobs, such as a cheap one for implementation and a strong one for review. Each is set as a tier (cheap, standard or strong) or an exact model name.</p></div>
+        </div>
+        <p class="prose">Plan approval and models are saved in <code>docs/agents/delivery.md</code> in your repository. The run asks only for what that file doesn't settle, and offers to save your answers after showing you the change. There is no separate setup step.</p>
+
+        <div class="facts">
+          <div class="fact"><span class="lbl">Agents started per issue, for a plan of N tasks</span><b data-v="5|2N + 5|2N + 6"></b></div>
+          <div class="fact"><span class="lbl">Full local check runs after the build, plus CI</span><b data-v="2|3|4"></b></div>
+          <div class="fact"><span class="lbl">Full code reads of the branch diff after the build</span><b data-v="2|2|3"></b></div>
+          <div class="fact"><span class="lbl">Model seats this level uses</span><b data-v="5 of 10|8 of 10|10 of 10"></b></div>
+          <div class="fact"><span class="lbl">Runs it takes to build one issue</span><b class="gate" data-a="1|2 or more"></b></div>
+        </div>
+        <div class="note">Before this change, every issue got roughly today’s high-effort flow: one agent did both planning and building, with 2N + 5 agents, 3 full code reads, and 4 local check runs plus CI. You could choose the model for only 1 of 12 jobs, the implementer.</div>
+
+        <h2 id="ii-who">Who runs what</h2>
+        <div class="prose"><p>Each column is one agent, and time runs downward. Only the steps that run at <span class="lvl" data-v="low|medium|high"></span> effort are shown<span data-approval="on">, with the blue plan-approval band</span><span data-approval="off">; turn on plan approval to add its band</span>.</p></div>
+        <div class="legend" aria-label="Legend">
+          <span><i class="sw c-all"></i>Runs at every effort</span>
+          <span><i class="sw c-lvl"></i>Runs only at some efforts</span>
+          <span data-approval="on"><i class="sw c-gate"></i>Plan approval on</span>
+          <span><i class="glyph c"></i>Runs the full checks</span>
+          <span><i class="glyph d"></i>Reads the whole diff</span>
+        </div>
+        <figure>
+          <div class="scroll" id="swimlane"></div>
+          <figcaption>Figure 1. One issue end to end at <span class="lvl" data-v="low|medium|high"></span> effort. The planner ends once the plan is written. The build lead stays alive to answer the review and fix CI. The review agent is always a new agent, so no one reviews their own work.</figcaption>
+        </figure>
+
+        <h2 id="ii-approval">Approving plans</h2>
+        <div data-approval="off" class="note">Plan approval is off, so each issue is planned and built in one run, with no plan PR. <button type="button" data-set-approval="on">Turn plan approval on</button> to see how a plan PR moves across runs.</div>
+        <div data-approval="on">
+          <div class="prose"><p>With plan approval on, an issue spans two or more runs. Nothing needs to stay open in between, because the plan PR on GitHub holds the issue’s state.</p></div>
+          <figure>
+            <div class="scroll"><svg class="fig" viewBox="0 0 860 330" role="img" aria-labelledby="spt spd" style="min-width:700px">
 <title id="spt">A plan pull request across runs</title>
 <desc id="spd">State chart: planned, waiting, revising, capped, building, then ready or draft. Only you move a plan to building, by adding the plan-approved label.</desc>
 <defs>
 <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
-<marker id="a2f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahf"/></marker>
 <marker id="a2g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahg"/></marker>
 </defs>
 <rect x="20" y="120" width="140" height="50" rx="22" class="box c-all"/><text x="90.0" y="141" class="bt" text-anchor="middle">Planned</text><text x="90.0" y="157" class="bd" text-anchor="middle">run 1, Stage 3</text>
 <rect x="230" y="120" width="150" height="50" rx="22" class="box c-gate"/><text x="305.0" y="141" class="bt" text-anchor="middle">Waiting</text><text x="305.0" y="157" class="bd" text-anchor="middle">draft plan PR open</text>
 <rect x="230" y="250" width="150" height="50" rx="22" class="box c-gate"/><text x="305.0" y="271" class="bt" text-anchor="middle">Revising</text><text x="305.0" y="287" class="bd" text-anchor="middle">a later run, planner</text>
-<rect x="460" y="250" width="150" height="50" rx="22" class="box c-gate"/><text x="535.0" y="271" class="bt" text-anchor="middle">Capped</text><text x="535.0" y="287" class="bd" text-anchor="middle">waits for you</text>
+<rect x="460" y="250" width="150" height="50" rx="22" class="box c-gate"/><text x="535.0" y="271" class="bt" text-anchor="middle">Capped</text><text x="535.0" y="287" class="bd" text-anchor="middle" data-v="after 1 round|after 2 rounds|after 3 rounds"></text>
 <rect x="460" y="120" width="150" height="50" rx="22" class="box c-all"/><text x="535.0" y="141" class="bt" text-anchor="middle">Building</text><text x="535.0" y="157" class="bd" text-anchor="middle">Stages 4–8, same PR</text>
 <rect x="690" y="50" width="150" height="50" rx="22" class="box c-all"/><text x="765.0" y="71" class="bt" text-anchor="middle">Ready</text><text x="765.0" y="87" class="bd" text-anchor="middle">you review and merge</text>
 <rect x="690" y="190" width="150" height="50" rx="22" class="box c-all"/><text x="765.0" y="211" class="bt" text-anchor="middle">Draft</text><text x="765.0" y="227" class="bd" text-anchor="middle">checks or a finding failed</text>
@@ -437,133 +338,84 @@ img { max-width: 100%; }
 <text x="20" y="40" class="bd">Between runs, the issue’s state lives on GitHub, in the plan PR.</text>
 <text x="20" y="58" class="bd">Every run reads it in Stage 1. Only you add the plan-approved label.</text>
 </svg></div>
-    <figcaption>Figure 2. A plan PR across runs. Comments send the plan back for revision on the next run, up to 1, 2 or 3 rounds by effort. Once the cap is reached, it waits for you. Only you add <code>plan-approved</code>.</figcaption>
-  </figure>
+            <figcaption>Figure 2. A plan PR across runs. Comments send the plan back for revision on the next run, up to <span data-v="1 round|2 rounds|3 rounds"></span> at <span class="lvl" data-v="low|medium|high"></span> effort. Once the cap is reached, it waits for you. Only you add <code>plan-approved</code>.</figcaption>
+          </figure>
+        </div>
 
-  <h2>Effort, side by side</h2>
-  <div class="tablewrap">
-    <table class="heat">
-      <thead><tr><th>What effort decides</th><th>low</th><th>medium</th><th>high</th></tr></thead>
-      <tbody>
-        <tr><td>How the plan is built</td><td class="h h1">The build lead builds every task itself</td><td class="h h2">A fresh agent per task, reviewed after each</td><td class="h h3">A fresh agent per task, reviewed after each</td></tr>
-        <tr><td>Fix rounds per task review</td><td class="h h1">none</td><td class="h h2">2</td><td class="h h3">5, rounds 4–5 escalate</td></tr>
-        <tr><td>Code review on the PR</td><td class="h h1">intent check only</td><td class="h h1">intent check only</td><td class="h h3">intent check and code review</td></tr>
-        <tr><td>Local check runs after the build</td><td class="h h1">2</td><td class="h h2">3</td><td class="h h3">4</td></tr>
-        <tr><td>CI fix attempts</td><td class="h h1">1</td><td class="h h2">2</td><td class="h h3">3</td></tr>
-        <tr><td>Plan revision rounds</td><td class="h h1">1</td><td class="h h2">2</td><td class="h h3">3</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="prose">What holds at every effort: one whole-branch review ends the build, the checks run before anything is pushed, the build lead answers the review once, and nothing merges.</p>
-  <figure>
-    <div class="scroll"><svg class="fig" viewBox="0 0 660 300" role="img" aria-labelledby="agt agd" style="min-width:520px">
-<title id="agt">Agents started per issue, by plan size</title>
-<desc id="agd">Line chart. Low effort starts 5 agents whatever the plan size. Medium starts 2N plus 5 and high 2N plus 6, for a plan of N tasks.</desc>
-<line x1="60" y1="260.0" x2="520" y2="260.0" class="grid"/>
-<text x="50" y="264.0" class="tick" text-anchor="end">0</text>
-<line x1="60" y1="214.0" x2="520" y2="214.0" class="grid"/>
-<text x="50" y="218.0" class="tick" text-anchor="end">5</text>
-<line x1="60" y1="168.0" x2="520" y2="168.0" class="grid"/>
-<text x="50" y="172.0" class="tick" text-anchor="end">10</text>
-<line x1="60" y1="122.0" x2="520" y2="122.0" class="grid"/>
-<text x="50" y="126.0" class="tick" text-anchor="end">15</text>
-<line x1="60" y1="76.0" x2="520" y2="76.0" class="grid"/>
-<text x="50" y="80.0" class="tick" text-anchor="end">20</text>
-<line x1="60" y1="30.0" x2="520" y2="30.0" class="grid"/>
-<text x="50" y="34.0" class="tick" text-anchor="end">25</text>
-<text x="60.0" y="280" class="tick" text-anchor="middle">1</text>
-<text x="125.7" y="280" class="tick" text-anchor="middle">2</text>
-<text x="191.4" y="280" class="tick" text-anchor="middle">3</text>
-<text x="257.1" y="280" class="tick" text-anchor="middle">4</text>
-<text x="322.9" y="280" class="tick" text-anchor="middle">5</text>
-<text x="388.6" y="280" class="tick" text-anchor="middle">6</text>
-<text x="454.3" y="280" class="tick" text-anchor="middle">7</text>
-<text x="520.0" y="280" class="tick" text-anchor="middle">8</text>
-<text x="290.0" y="298" class="tick" text-anchor="middle">tasks in the plan (N)</text>
-<path d="M60.0,186.4 L125.7,168.0 L191.4,149.6 L257.1,131.2 L322.9,112.8 L388.6,94.4 L454.3,76.0 L520.0,57.6" class="line c-high"/>
-<circle cx="60.0" cy="186.4" r="3" class="pt c-high"><title>high, N=1: 8 agents</title></circle>
-<circle cx="125.7" cy="168.0" r="3" class="pt c-high"><title>high, N=2: 10 agents</title></circle>
-<circle cx="191.4" cy="149.6" r="3" class="pt c-high"><title>high, N=3: 12 agents</title></circle>
-<circle cx="257.1" cy="131.2" r="3" class="pt c-high"><title>high, N=4: 14 agents</title></circle>
-<circle cx="322.9" cy="112.8" r="3" class="pt c-high"><title>high, N=5: 16 agents</title></circle>
-<circle cx="388.6" cy="94.4" r="3" class="pt c-high"><title>high, N=6: 18 agents</title></circle>
-<circle cx="454.3" cy="76.0" r="3" class="pt c-high"><title>high, N=7: 20 agents</title></circle>
-<circle cx="520.0" cy="57.6" r="4.5" class="pt c-high"><title>high, N=8: 22 agents</title></circle>
-<text x="530.0" y="51.6" class="val">high · 2N + 6</text>
-<path d="M60.0,195.6 L125.7,177.2 L191.4,158.8 L257.1,140.4 L322.9,122.0 L388.6,103.6 L454.3,85.2 L520.0,66.8" class="line c-mh"/>
-<circle cx="60.0" cy="195.6" r="3" class="pt c-mh"><title>medium, N=1: 7 agents</title></circle>
-<circle cx="125.7" cy="177.2" r="3" class="pt c-mh"><title>medium, N=2: 9 agents</title></circle>
-<circle cx="191.4" cy="158.8" r="3" class="pt c-mh"><title>medium, N=3: 11 agents</title></circle>
-<circle cx="257.1" cy="140.4" r="3" class="pt c-mh"><title>medium, N=4: 13 agents</title></circle>
-<circle cx="322.9" cy="122.0" r="3" class="pt c-mh"><title>medium, N=5: 15 agents</title></circle>
-<circle cx="388.6" cy="103.6" r="3" class="pt c-mh"><title>medium, N=6: 17 agents</title></circle>
-<circle cx="454.3" cy="85.2" r="3" class="pt c-mh"><title>medium, N=7: 19 agents</title></circle>
-<circle cx="520.0" cy="66.8" r="4.5" class="pt c-mh"><title>medium, N=8: 21 agents</title></circle>
-<text x="530.0" y="78.8" class="val">medium · 2N + 5</text>
-<path d="M60.0,214.0 L125.7,214.0 L191.4,214.0 L257.1,214.0 L322.9,214.0 L388.6,214.0 L454.3,214.0 L520.0,214.0" class="line c-low"/>
-<circle cx="60.0" cy="214.0" r="3" class="pt c-low"><title>low, N=1: 5 agents</title></circle>
-<circle cx="125.7" cy="214.0" r="3" class="pt c-low"><title>low, N=2: 5 agents</title></circle>
-<circle cx="191.4" cy="214.0" r="3" class="pt c-low"><title>low, N=3: 5 agents</title></circle>
-<circle cx="257.1" cy="214.0" r="3" class="pt c-low"><title>low, N=4: 5 agents</title></circle>
-<circle cx="322.9" cy="214.0" r="3" class="pt c-low"><title>low, N=5: 5 agents</title></circle>
-<circle cx="388.6" cy="214.0" r="3" class="pt c-low"><title>low, N=6: 5 agents</title></circle>
-<circle cx="454.3" cy="214.0" r="3" class="pt c-low"><title>low, N=7: 5 agents</title></circle>
-<circle cx="520.0" cy="214.0" r="4.5" class="pt c-low"><title>low, N=8: 5 agents</title></circle>
-<text x="530.0" y="218.0" class="val">low · 5</text>
-</svg></div>
-    <figcaption>Figure 3. Agents started per issue. At low effort the count doesn’t grow with the plan. At medium and high it grows by two per task: one implementer and one reviewer. Each fix round adds more.</figcaption>
-  </figure>
+        <h2 id="ii-effort">Effort, side by side</h2>
+        <div class="prose"><p>The <span class="lvl" data-v="low|medium|high"></span> column is the one this page is showing. Pick another level in the bar to compare.</p></div>
+        <div class="tablewrap">
+          <table class="cmp">
+            <thead><tr><th>What effort decides</th><th data-col="low">low</th><th data-col="medium">medium</th><th data-col="high">high</th></tr></thead>
+            <tbody>
+              <tr><td>How the plan is built</td><td class="h" data-col="low">The build lead builds every task itself</td><td class="h" data-col="medium">A fresh agent per task, reviewed after each</td><td class="h" data-col="high">A fresh agent per task, reviewed after each</td></tr>
+              <tr><td>Fix rounds per task review</td><td class="h" data-col="low">none</td><td class="h" data-col="medium">2</td><td class="h" data-col="high">5, rounds 4–5 escalate</td></tr>
+              <tr><td>Code review on the PR</td><td class="h" data-col="low">intent check only</td><td class="h" data-col="medium">intent check only</td><td class="h" data-col="high">intent check and code review</td></tr>
+              <tr><td>Local check runs after the build</td><td class="h" data-col="low">2</td><td class="h" data-col="medium">3</td><td class="h" data-col="high">4</td></tr>
+              <tr><td>CI fix attempts</td><td class="h" data-col="low">1</td><td class="h" data-col="medium">2</td><td class="h" data-col="high">3</td></tr>
+              <tr><td>Plan revision rounds</td><td class="h" data-col="low">1</td><td class="h" data-col="medium">2</td><td class="h" data-col="high">3</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="prose">What holds at every effort: one whole-branch review ends the build, the checks run before anything is pushed, the build lead answers the review once, and nothing merges.</p>
+        <figure>
+          <div class="scroll" id="agents"></div>
+          <figcaption>Figure 3. Agents started per issue at <span class="lvl" data-v="low|medium|high"></span> effort. <span data-v="At low the count doesn’t grow with the plan: the build lead builds every task itself.|At medium it grows by two per task: one implementer and one reviewer. Each fix round adds more.|At high it grows by two per task, one implementer and one reviewer, plus the PR’s code reviewer. Each fix round adds more."></span></figcaption>
+        </figure>
 
-  <h2>Stage by stage</h2>
-  <ol class="stages prose">
-    <li><div><b>Build the queue</b> <span class="who">Dispatcher</span>
-      <ul><li>Lists the open issues, then looks at each one’s pull requests and branches.</li>
-      <li>Sorts each issue:
-        <ul><li>a plan PR labeled <code>plan-approved</code> is built;</li>
-        <li>a plan PR with unanswered comments gets its plan revised;</li>
-        <li>any other plan PR waits;</li>
-        <li>any other PR or branch is skipped;</li>
-        <li>an issue with neither gets planned.</li></ul></li></ul></div></li>
-    <li><div><b>Settle the settings</b> <span class="who">Dispatcher</span>
-      <ul><li>Prints the effort, plan approval, and the model for every job. A model your agent doesn’t offer stops the run.</li>
-      <li>Asks for what isn’t saved and offers to save it. Then asks whether to run the issues one at a time or several in parallel.</li></ul></div></li>
-    <li><div><b>Plan</b> <span class="who">Planner, one per issue</span>
-      <ul><li>Superpowers’ brainstorming works from the issue and decides how big the work is. A project gets a spec, and a quick spec check if it has its own model. A small change goes straight to the plan.</li>
-      <li><code>writing-plans</code> writes the plan. The planner commits the spec and plan, and stops.</li>
-      <li>With plan approval on, the dispatcher opens a draft plan PR, and the issue waits for you.</li></ul></div></li>
-    <li><div><b>Build</b> <span class="who">Build lead, one per issue</span>
-      <ul><li>Low: the build lead builds every task itself, tests first.</li>
-      <li>Medium and high: it runs Superpowers’ per-task loop (Figure 4).</li>
-      <li>At every effort, one whole-branch review ends the build, followed by one fix pass if the review finds anything.</li></ul></div></li>
-    <li><div><b>Verify</b> <span class="who">Dispatcher</span>
-      <ul><li>Reads the log and the diff, then runs tests, lint and typecheck. The output goes to log files, and only results and failures are read back.</li></ul></div></li>
-    <li><div><b>Open the draft PR</b> <span class="who">Dispatcher</span>
-      <ul><li>An approved plan PR becomes the built PR, on the same branch. Otherwise a new draft opens. At high effort, the full suite runs once more first.</li></ul></div></li>
-    <li><div><b>Review</b> <span class="who">A new review agent</span>
-      <ul><li>Checks the PR against the issue at every effort. Reviews the code too only at high, because below that the build’s own review already covered it.</li></ul></div></li>
-    <li><div><b>Answer and mark ready</b> <span class="who">Build lead, then dispatcher</span>
-      <ul><li>The build lead fixes each finding, runs the checks, pushes, and replies to every comment.</li>
-      <li>At medium and high, the dispatcher re-checks the pushed head. At low, CI is the evidence.</li>
-      <li>CI failures go back to the build lead, up to 1, 2 or 3 tries. Then the PR is marked ready, and merging is up to you.</li></ul></div></li>
-    <li><div><b>Report</b> <span class="who">Dispatcher</span>
-      <ul><li>One table: each issue’s state, the effort, the plan state, and the model each job ran on.</li></ul></div></li>
-  </ol>
+        <h2 id="ii-stages">Stage by stage</h2>
+        <ol class="stages prose">
+          <li><div><b>Build the queue</b> <span class="who">Dispatcher</span>
+            <ul><li>Lists the open issues, then looks at each one’s pull requests and branches.</li>
+            <li>Sorts each issue:
+              <ul><li>a plan PR labeled <code>plan-approved</code> is built;</li>
+              <li>a plan PR with unanswered comments gets its plan revised;</li>
+              <li>any other plan PR waits;</li>
+              <li>any other PR or branch is skipped;</li>
+              <li>an issue with neither gets planned.</li></ul></li></ul></div></li>
+          <li><div><b>Settle the settings</b> <span class="who">Dispatcher</span>
+            <ul><li>Prints the effort, plan approval, and the model for every job. A model your agent doesn’t offer stops the run.</li>
+            <li>Asks for what isn’t saved and offers to save it. Then asks whether to run the issues one at a time or several in parallel.</li></ul></div></li>
+          <li><div><b>Plan</b> <span class="who">Planner, one per issue</span>
+            <ul><li>Superpowers’ brainstorming works from the issue and decides how big the work is. A project gets a spec, and a quick spec check if it has its own model. A small change goes straight to the plan.</li>
+            <li><code>writing-plans</code> writes the plan. The planner commits the spec and plan, and stops.</li>
+            <li data-approval="on">Plan approval is on, so the dispatcher opens a draft plan PR, and the issue waits for you. A later run revises it on your comments, up to <span data-v="1 round|2 rounds|3 rounds"></span>, and builds it once you add <code>plan-approved</code>.</li>
+            <li data-approval="off">Plan approval is off, so the build starts in the same run.</li></ul></div></li>
+          <li><div><b>Build</b> <span class="who">Build lead, one per issue</span>
+            <ul><li data-effort="low">The build lead builds every task itself with <code>executing-plans</code>, tests first. No per-task reviews run.</li>
+            <li data-effort="medium high">It runs Superpowers’ per-task loop (Figure 4): a fresh implementer per task, reviewed after each, with up to <span data-v="|2|5"></span> fix rounds.</li>
+            <li>One whole-branch review ends the build, followed by one fix pass if the review finds anything.</li></ul></div></li>
+          <li><div><b>Verify</b> <span class="who">Dispatcher</span>
+            <ul><li>Reads the log and the diff, then runs tests, lint and typecheck. The output goes to log files, and only results and failures are read back.</li></ul></div></li>
+          <li><div><b>Open the draft PR</b> <span class="who">Dispatcher</span>
+            <ul><li><span data-approval="on">The approved plan PR becomes the built PR, on the same branch.</span><span data-approval="off">A new draft PR opens.</span><span data-effort="high"> At high effort, the full suite runs once more first.</span></li></ul></div></li>
+          <li><div><b>Review</b> <span class="who">A new review agent</span>
+            <ul><li data-effort="low medium">Checks the PR against the issue. The code isn’t reviewed a second time, because the build’s own whole-branch review already covered it.</li>
+            <li data-effort="high">Checks the PR against the issue, then reviews the code as well, with the <code>pr-code-reviewer</code> seat.</li></ul></div></li>
+          <li><div><b>Answer and mark ready</b> <span class="who">Build lead, then dispatcher</span>
+            <ul><li>The build lead fixes each finding, runs the checks, pushes, and replies to every comment.</li>
+            <li data-effort="medium high">The dispatcher re-checks the pushed head.</li>
+            <li data-effort="low">The pushed head isn’t re-checked locally: CI is the evidence. Only a repository without CI gets the local re-check.</li>
+            <li>CI failures go back to the build lead, up to <span data-v="1 try|2 tries|3 tries"></span>. Then the PR is marked ready, and merging is up to you.</li></ul></div></li>
+          <li><div><b>Report</b> <span class="who">Dispatcher</span>
+            <ul><li>One table: each issue’s state, the effort, the plan state, and the model each job ran on.</li></ul></div></li>
+        </ol>
 
-  <h2>The per-task loop</h2>
-  <div class="prose"><p>This loop runs at medium and high effort only, once per plan task. The fix-round cap is 2 at medium and 5 at high, so the escalation seat is used only at high.</p></div>
-  <figure>
-    <div class="scroll"><svg class="fig" viewBox="0 0 780 900" role="img" aria-labelledby="lpt lpd" style="min-width:640px">
+        <h2 id="ii-loop">The per-task loop</h2>
+        <div data-effort="low" class="note">At low effort there is no per-task loop. The build lead builds every task itself with <code>executing-plans</code>, tests first, and the whole-branch review at the end is the only review of the build. Pick medium or high to see the loop.</div>
+        <div data-effort="medium high">
+          <div class="prose"><p>This loop runs once per plan task. At <span class="lvl" data-v="low|medium|high"></span> effort, the fix-round cap is <span data-v="|2|5"></span><span data-v="|, so the escalation seat is never used|, and rounds 4–5 go to the escalation seat"></span>.</p></div>
+          <figure>
+            <div class="scroll"><svg class="fig" viewBox="0 0 780 900" role="img" aria-labelledby="lpt lpd" style="min-width:640px">
 <title id="lpt">The per-task loop inside subagent-driven-development</title>
-<desc id="lpd">Flowchart for medium and high effort: brief, implementer, task review, fix rounds up to the effort cap with scoped re-reviews, and the breaker.</desc>
+<desc id="lpd">Flowchart: brief, implementer, task review, fix rounds up to the effort cap with scoped re-reviews, and the breaker.</desc>
 <defs>
 <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
-<marker id="a3f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahf"/></marker>
-<marker id="a3g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahg"/></marker>
 </defs>
 <rect x="190.0" y="20" width="280" height="50" rx="7" class="box c-all"/>
 <text x="330.0" y="39" class="bt" text-anchor="middle">Record BASE, write the task brief</text>
 <text x="330.0" y="56" class="bd" text-anchor="middle">build lead, per task</text>
-<rect x="190.0" y="100" width="280" height="50" rx="7" class="box c-mh"/>
+<rect x="190.0" y="100" width="280" height="50" rx="7" class="box c-lvl"/>
 <text x="330.0" y="119" class="bt" text-anchor="middle">Implementer</text>
 <text x="330.0" y="136" class="bd" text-anchor="middle">implementer seat, or by task</text>
 <path d="M330.0,70.0 L330.0,100.0" class="e" marker-end="url(#a3)"/>
@@ -576,7 +428,7 @@ img { max-width: 100%; }
 <text x="640" y="232" class="bd" text-anchor="middle">a smaller task, or a ruling</text>
 <path d="M410.0,210.0 L520.0,210.0" class="e" marker-end="url(#a3)"/>
 <path d="M640.0,182.0 L640.0,125.0 L470.0,125.0" class="e" marker-end="url(#a3)"/><text x="520" y="118" class="el">re-dispatch</text>
-<rect x="190.0" y="280" width="280" height="50" rx="7" class="box c-mh"/>
+<rect x="190.0" y="280" width="280" height="50" rx="7" class="box c-lvl"/>
 <text x="330.0" y="299" class="bt" text-anchor="middle">Task reviewer</text>
 <text x="330.0" y="316" class="bd" text-anchor="middle">task-reviewer seat, reads the diff file</text>
 <path d="M330.0,244.0 L330.0,280.0" class="e" marker-end="url(#a3)"/><text x="338" y="266" class="el">DONE</text>
@@ -588,12 +440,12 @@ img { max-width: 100%; }
 <text x="330.0" y="499" class="bt" text-anchor="middle">Sort the findings</text>
 <text x="330.0" y="516" class="bd" text-anchor="middle">Minor → ledger · plan conflict → ruling</text>
 <path d="M330.0,442.0 L330.0,480.0" class="e" marker-end="url(#a3)"/><text x="338" y="466" class="el">no</text>
-<rect x="190.0" y="560" width="280" height="66" rx="7" class="box c-mh"/>
+<rect x="190.0" y="560" width="280" height="66" rx="7" class="box c-lvl"/>
 <text x="330.0" y="579" class="bt" text-anchor="middle">Fix round R</text>
-<text x="330.0" y="596" class="bd" text-anchor="middle">R 1–3: resume the same implementer</text>
-<text x="330.0" y="611" class="bd" text-anchor="middle">R 4–5, high only: escalation seat</text>
+<text x="330.0" y="596" class="bd" text-anchor="middle" data-v="|R 1–2: resume the same implementer|R 1–3: resume the same implementer"></text>
+<text x="330.0" y="611" class="bd" text-anchor="middle" data-v="|no escalation at medium|R 4–5: the escalation seat"></text>
 <path d="M330.0,530.0 L330.0,560.0" class="e" marker-end="url(#a3)"/>
-<rect x="190.0" y="656" width="280" height="50" rx="7" class="box c-mh"/>
+<rect x="190.0" y="656" width="280" height="50" rx="7" class="box c-lvl"/>
 <text x="330.0" y="675" class="bt" text-anchor="middle">Scoped re-review</text>
 <text x="330.0" y="692" class="bd" text-anchor="middle">re-reviewer seat, the fix diff only</text>
 <path d="M330.0,626.0 L330.0,656.0" class="e" marker-end="url(#a3)"/>
@@ -601,8 +453,8 @@ img { max-width: 100%; }
 <text x="330" y="764" class="bt" text-anchor="middle">Addressed?</text>
 <path d="M330.0,706.0 L330.0,726.0" class="e" marker-end="url(#a3)"/>
 <path d="M600,722 L676,760 L600,798 L524,760 z" class="dia"/>
-<text x="600" y="758" class="bt" text-anchor="middle">R = cap?</text>
-<text x="600" y="773" class="bd" text-anchor="middle">2 med · 5 high</text>
+<text x="600" y="758" class="bt" text-anchor="middle" data-v="|R = 2?|R = 5?"></text>
+<text x="600" y="773" class="bd" text-anchor="middle" data-v="|cap at medium|cap at high"></text>
 <path d="M410.0,760.0 L524.0,760.0" class="e" marker-end="url(#a3)"/><text x="422" y="752" class="el">no</text>
 <path d="M600.0,722.0 L600.0,593.0 L470.0,593.0" class="e" marker-end="url(#a3)"/><text x="608" y="660" class="el">no: next round</text>
 <rect x="500" y="820" width="260" height="50" rx="7" class="box c-all"/>
@@ -616,155 +468,382 @@ img { max-width: 100%; }
 <path d="M500.0,852.0 L470.0,852.0" class="e" marker-end="url(#a3)"/>
 <path d="M220.0,400.0 L40.0,400.0 L40.0,857.0 L190.0,857.0" class="e" marker-end="url(#a3)"/><text x="48" y="392" class="el">yes</text>
 </svg></div>
-    <figcaption>Figure 4. Superpowers’ task loop. When a task’s findings are still open at the cap, the build lead decides each one itself and records why.</figcaption>
-  </figure>
+            <figcaption>Figure 4. Superpowers’ task loop at <span class="lvl" data-v="low|medium|high"></span> effort. When a task’s findings are still open after round <span data-v="|2|5"></span>, the build lead decides each one itself and records why.</figcaption>
+          </figure>
+        </div>
 
-  <h2>The ten model seats</h2>
-  <div class="tablewrap">
-    <table>
-      <thead><tr><th>Seat</th><th>What it does</th><th>Runs at</th><th>When not set</th></tr></thead>
-      <tbody>
-        <tr><td><code>planner</code></td><td>Brainstorming, the spec, the plan, and plan revisions</td><td><span class="chip c-all">every effort</span></td><td>session model</td></tr>
-        <tr><td><code>spec-check</code></td><td>A quick check of a written spec</td><td><span class="chip c-all">when a spec exists</span></td><td>the planner’s model</td></tr>
-        <tr><td><code>build-lead</code></td><td>Runs the build, answers the review, fixes CI</td><td><span class="chip c-all">every effort</span></td><td>session model</td></tr>
-        <tr><td><code>implementer</code></td><td>Builds one plan task</td><td><span class="chip c-mh">medium, high</span></td><td>asked when the run starts</td></tr>
-        <tr><td><code>task-reviewer</code></td><td>Reviews one task’s diff</td><td><span class="chip c-mh">medium, high</span></td><td>Superpowers picks by task size</td></tr>
-        <tr><td><code>re-reviewer</code></td><td>Checks that a fix addressed its findings</td><td><span class="chip c-mh">medium, high</span></td><td>Superpowers picks, cheap to mid</td></tr>
-        <tr><td><code>escalation</code></td><td>Fix rounds 4–5, after an implementer got stuck</td><td><span class="chip c-high">high</span></td><td>one tier above the implementer</td></tr>
-        <tr><td><code>final-reviewer</code></td><td>The whole-branch review that ends the build</td><td><span class="chip c-all">every effort</span></td><td>the most capable model</td></tr>
-        <tr><td><code>pr-reviewer</code></td><td>The agent that reviews the PR</td><td><span class="chip c-all">every effort</span></td><td>session model</td></tr>
-        <tr><td><code>pr-code-reviewer</code></td><td>The code review inside that PR review</td><td><span class="chip c-high">high</span></td><td>the most capable model</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="prose">A value is a tier (<code>cheap</code>, <code>standard</code>, <code>strong</code>) that the file maps to a real model for each platform, <code>session</code>, an exact model name, or, for the implementer only, <code>by-task</code>. For the five seats Superpowers dispatches, your choice is an instruction rather than a guarantee, so the report shows the model each job actually ran on.</p>
+        <h2 id="ii-seats">The ten model seats</h2>
+        <div class="prose"><p>All ten can be set in <code>delivery.md</code>. At <span class="lvl" data-v="low|medium|high"></span> effort, <span data-v="five of them run; the faded rows don’t.|eight of them run; the faded rows don’t.|all ten can run."></span></p></div>
+        <div class="tablewrap">
+          <table id="seats">
+            <thead><tr><th>Seat</th><th>What it does</th><th>Runs at</th><th>When not set</th></tr></thead>
+            <tbody>
+              <tr data-uses="low medium high"><td><code>planner</code></td><td>Brainstorming, the spec, the plan, and plan revisions</td><td><span class="chip c-all">every effort</span></td><td>session model</td></tr>
+              <tr data-uses="low medium high"><td><code>spec-check</code></td><td>A quick check of a written spec</td><td><span class="chip c-all">when a spec exists</span></td><td>the planner’s model</td></tr>
+              <tr data-uses="low medium high"><td><code>build-lead</code></td><td>Runs the build, answers the review, fixes CI</td><td><span class="chip c-all">every effort</span></td><td>session model</td></tr>
+              <tr data-uses="medium high"><td><code>implementer</code></td><td>Builds one plan task</td><td><span class="chip c-medium">medium, high</span></td><td>asked when the run starts</td></tr>
+              <tr data-uses="medium high"><td><code>task-reviewer</code></td><td>Reviews one task’s diff</td><td><span class="chip c-medium">medium, high</span></td><td>Superpowers picks by task size</td></tr>
+              <tr data-uses="medium high"><td><code>re-reviewer</code></td><td>Checks that a fix addressed its findings</td><td><span class="chip c-medium">medium, high</span></td><td>Superpowers picks, cheap to mid</td></tr>
+              <tr data-uses="high"><td><code>escalation</code></td><td>Fix rounds 4–5, after an implementer got stuck</td><td><span class="chip c-high">high</span></td><td>one tier above the implementer</td></tr>
+              <tr data-uses="low medium high"><td><code>final-reviewer</code></td><td>The whole-branch review that ends the build</td><td><span class="chip c-all">every effort</span></td><td>the most capable model</td></tr>
+              <tr data-uses="low medium high"><td><code>pr-reviewer</code></td><td>The agent that reviews the PR</td><td><span class="chip c-all">every effort</span></td><td>session model</td></tr>
+              <tr data-uses="high"><td><code>pr-code-reviewer</code></td><td>The code review inside that PR review</td><td><span class="chip c-high">high</span></td><td>the most capable model</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="prose">A value is a tier (<code>cheap</code>, <code>standard</code>, <code>strong</code>) that the file maps to a real model for each platform, <code>session</code>, an exact model name, or, for the implementer only, <code>by-task</code>. For the five seats Superpowers dispatches, your choice is an instruction rather than a guarantee, so the report shows the model each job actually ran on.</p>
 
-  <h2>What each agent loads</h2>
-  <div class="prose"><p>This counts skill and prompt text only, measured from the installed files. Code, diffs and test output come on top of it. Splitting the old single issue agent into a planner and a build lead keeps either agent from carrying both sets of skills.</p></div>
-  <figure>
-    <div class="scroll"><svg class="fig" viewBox="0 0 780 512" role="img" aria-labelledby="bct bcd" style="min-width:600px">
-<title id="bct">Skill and prompt text each seat loads</title>
-<desc id="bcd">Horizontal bars in kilobytes per seat. The build lead loads about 47 to 49 KB, the dispatcher 33, the planner 31, and every other seat under 17.</desc>
-<line x1="190.0" y1="24" x2="190.0" y2="494" class="grid"/>
-<text x="190.0" y="508" class="tick" text-anchor="middle">0 KB</text>
-<line x1="268.3" y1="24" x2="268.3" y2="494" class="grid"/>
-<text x="268.3" y="508" class="tick" text-anchor="middle">10 KB</text>
-<line x1="346.7" y1="24" x2="346.7" y2="494" class="grid"/>
-<text x="346.7" y="508" class="tick" text-anchor="middle">20 KB</text>
-<line x1="425.0" y1="24" x2="425.0" y2="494" class="grid"/>
-<text x="425.0" y="508" class="tick" text-anchor="middle">30 KB</text>
-<line x1="503.3" y1="24" x2="503.3" y2="494" class="grid"/>
-<text x="503.3" y="508" class="tick" text-anchor="middle">40 KB</text>
-<line x1="581.7" y1="24" x2="581.7" y2="494" class="grid"/>
-<text x="581.7" y="508" class="tick" text-anchor="middle">50 KB</text>
-<line x1="660.0" y1="24" x2="660.0" y2="494" class="grid"/>
-<text x="660.0" y="508" class="tick" text-anchor="middle">60 KB</text>
-<text x="178" y="41" class="bt" text-anchor="end">Build lead</text>
-<text x="178" y="55" class="bd" text-anchor="end">medium, high</text>
-<rect x="190.0" y="30" width="255.4" height="22" class="bar c-mh"><title>SDD: 32.6 KB</title></rect>
-<text x="196.0" y="45" class="seg">SDD</text>
-<rect x="445.4" y="30" width="55.6" height="22" class="bar c-mh"><title>answer-pr-reviews: 7.1 KB</title></rect>
-<rect x="501.0" y="30" width="48.6" height="22" class="bar c-mh"><title>receiving-code-review: 6.2 KB</title></rect>
-<rect x="549.5" y="30" width="25.1" height="22" class="bar c-mh"><title>build brief: 3.2 KB</title></rect>
-<text x="582.6" y="45" class="val">49.1 KB ≈ 12k tokens</text>
-<text x="178" y="79" class="bt" text-anchor="end">Build lead</text>
-<text x="178" y="93" class="bd" text-anchor="end">low</text>
-<rect x="190.0" y="68" width="159.8" height="22" class="bar c-low"><title>executing-plans: 20.4 KB</title></rect>
-<text x="196.0" y="83" class="seg">executing-plans</text>
-<rect x="349.8" y="68" width="75.2" height="22" class="bar c-low"><title>TDD: 9.6 KB</title></rect>
-<text x="355.8" y="83" class="seg">TDD</text>
-<rect x="425.0" y="68" width="55.6" height="22" class="bar c-low"><title>answer-pr-reviews: 7.1 KB</title></rect>
-<rect x="480.6" y="68" width="48.6" height="22" class="bar c-low"><title>receiving-code-review: 6.2 KB</title></rect>
-<rect x="529.2" y="68" width="25.1" height="22" class="bar c-low"><title>build brief: 3.2 KB</title></rect>
-<text x="562.2" y="83" class="val">46.5 KB ≈ 12k tokens</text>
-<text x="178" y="117" class="bt" text-anchor="end">Dispatcher</text>
-<text x="178" y="131" class="bd" text-anchor="end">every run</text>
-<rect x="190.0" y="106" width="137.1" height="22" class="bar c-all"><title>implement-issues: 17.5 KB</title></rect>
-<text x="196.0" y="121" class="seg">implement-issues</text>
-<rect x="327.1" y="106" width="61.1" height="22" class="bar c-all"><title>finishing: 7.8 KB</title></rect>
-<text x="333.1" y="121" class="seg">finishing</text>
-<rect x="388.2" y="106" width="33.7" height="22" class="bar c-all"><title>fetch-issues: 4.3 KB</title></rect>
-<rect x="421.9" y="106" width="28.2" height="22" class="bar c-all"><title>verification: 3.6 KB</title></rect>
-<text x="458.1" y="121" class="val">33.2 KB ≈ 8k tokens</text>
-<text x="178" y="155" class="bt" text-anchor="end">Planner</text>
-<text x="178" y="169" class="bd" text-anchor="end">every issue</text>
-<rect x="190.0" y="144" width="80.7" height="22" class="bar c-all"><title>writing-plans: 10.3 KB</title></rect>
-<text x="196.0" y="159" class="seg">writing-plans</text>
-<rect x="270.7" y="144" width="79.1" height="22" class="bar c-all"><title>brainstorming: 10.1 KB</title></rect>
-<text x="276.7" y="159" class="seg">brainstorming</text>
-<rect x="349.8" y="144" width="60.3" height="22" class="bar c-all"><title>bridge: 7.7 KB</title></rect>
-<text x="355.8" y="159" class="seg">bridge</text>
-<rect x="410.1" y="144" width="21.2" height="22" class="bar c-all"><title>planner brief: 2.7 KB</title></rect>
-<text x="439.3" y="159" class="val">30.8 KB ≈ 8k tokens</text>
-<text x="178" y="193" class="bt" text-anchor="end">Planner, revising</text>
-<text x="178" y="207" class="bd" text-anchor="end">per round</text>
-<rect x="190.0" y="182" width="55.6" height="22" class="bar c-gate"><title>answer-pr-reviews: 7.1 KB</title></rect>
-<rect x="245.6" y="182" width="48.6" height="22" class="bar c-gate"><title>receiving-code-review: 6.2 KB</title></rect>
-<rect x="294.2" y="182" width="21.2" height="22" class="bar c-gate"><title>planner brief: 2.7 KB</title></rect>
-<text x="323.3" y="197" class="val">16.0 KB ≈ 4k tokens</text>
-<text x="178" y="231" class="bt" text-anchor="end">Review agent</text>
-<text x="178" y="245" class="bd" text-anchor="end">every issue</text>
-<rect x="190.0" y="220" width="52.5" height="22" class="bar c-all"><title>review-prs: 6.7 KB</title></rect>
-<rect x="242.5" y="220" width="23.5" height="22" class="bar c-high"><title>requesting-code-review, high: 3.0 KB</title></rect>
-<text x="274.0" y="235" class="val">9.7 KB ≈ 2k tokens</text>
-<text x="178" y="269" class="bt" text-anchor="end">Task reviewer</text>
-<text x="178" y="283" class="bd" text-anchor="end">×N, med/high</text>
-<rect x="190.0" y="258" width="70.5" height="22" class="bar c-mh"><title>task-reviewer prompt: 9.0 KB</title></rect>
-<text x="196.0" y="273" class="seg">task-reviewer prompt</text>
-<text x="268.5" y="273" class="val">9.0 KB ≈ 2k tokens</text>
-<text x="178" y="307" class="bt" text-anchor="end">Final reviewer</text>
-<text x="178" y="321" class="bd" text-anchor="end">every issue</text>
-<rect x="190.0" y="296" width="50.1" height="22" class="bar c-all"><title>code-reviewer.md: 6.4 KB</title></rect>
-<text x="248.1" y="311" class="val">6.4 KB ≈ 2k tokens</text>
-<text x="178" y="345" class="bt" text-anchor="end">PR code reviewer</text>
-<text x="178" y="359" class="bd" text-anchor="end">high only</text>
-<rect x="190.0" y="334" width="50.1" height="22" class="bar c-high"><title>code-reviewer.md: 6.4 KB</title></rect>
-<text x="248.1" y="349" class="val">6.4 KB ≈ 2k tokens</text>
-<text x="178" y="383" class="bt" text-anchor="end">Implementer</text>
-<text x="178" y="397" class="bd" text-anchor="end">×N, med/high</text>
-<rect x="190.0" y="372" width="49.3" height="22" class="bar c-mh"><title>implementer prompt: 6.3 KB</title></rect>
-<text x="247.3" y="387" class="val">6.3 KB ≈ 2k tokens</text>
-<text x="178" y="421" class="bt" text-anchor="end">Re-reviewer</text>
-<text x="178" y="435" class="bd" text-anchor="end">per fix round</text>
-<rect x="190.0" y="410" width="37.6" height="22" class="bar c-mh"><title>re-review prompt: 4.8 KB</title></rect>
-<text x="235.6" y="425" class="val">4.8 KB ≈ 1k tokens</text>
-<text x="178" y="459" class="bt" text-anchor="end">Spec check</text>
-<text x="178" y="473" class="bd" text-anchor="end">when a spec</text>
-<rect x="190.0" y="448" width="7.0" height="22" class="bar c-all"><title>builder-check prompt: 0.9 KB</title></rect>
-<text x="205.1" y="463" class="val">0.9 KB</text>
-</svg></div>
-    <figcaption>Figure 5. Kilobytes of instructions for each agent, with tokens estimated at four characters per token. Colors follow Figure 1. The review agent’s red segment loads only at high effort.</figcaption>
-  </figure>
+        <h2 id="ii-loads">What each agent loads</h2>
+        <div class="prose"><p>This counts skill and prompt text only, measured from the installed files, for the agents that run at <span class="lvl" data-v="low|medium|high"></span> effort<span data-approval="on"> with plan approval on</span>. Code, diffs and test output come on top of it. Splitting the old single issue agent into a planner and a build lead keeps either agent from carrying both sets of skills.</p></div>
+        <figure>
+          <div class="scroll" id="loads"></div>
+          <figcaption>Figure 5. Kilobytes of instructions for each agent, with tokens estimated at four characters per token.<span data-effort="high"> The review agent’s red segment loads only at high effort.</span></figcaption>
+        </figure>
 
-  <h2>Where the same work repeats</h2>
-  <div class="tablewrap">
-    <table class="dots">
-      <thead><tr><th>Step after the build</th><th>Commit</th><th>low</th><th>medium</th><th>high</th></tr></thead>
-      <tbody>
-        <tr><td>Whole-branch review</td><td>A, the built branch</td><td class="m"><i class="glyph d"></i></td><td class="m"><i class="glyph d"></i></td><td class="m"><i class="glyph d"></i></td></tr>
-        <tr><td>Stage 5 verify</td><td>A</td><td class="m"><i class="glyph d"></i> <i class="glyph c"></i></td><td class="m"><i class="glyph d"></i> <i class="glyph c"></i></td><td class="m"><i class="glyph d"></i> <i class="glyph c"></i></td></tr>
-        <tr><td>Stage 6 suite run</td><td>A again</td><td class="m"><span class="no">—</span></td><td class="m"><span class="no">—</span></td><td class="m"><i class="glyph c"></i></td></tr>
-        <tr><td>Code review on the PR</td><td>A</td><td class="m"><span class="no">—</span></td><td class="m"><span class="no">—</span></td><td class="m"><i class="glyph d"></i></td></tr>
-        <tr><td>Answering the review</td><td>B, after the fixes</td><td class="m"><i class="glyph c"></i></td><td class="m"><i class="glyph c"></i></td><td class="m"><i class="glyph c"></i></td></tr>
-        <tr><td>Stage 8 recheck</td><td>B again</td><td class="m"><span class="no">only without CI</span></td><td class="m"><i class="glyph c"></i></td><td class="m"><i class="glyph c"></i></td></tr>
-        <tr><td>CI</td><td>B, on GitHub</td><td class="m"><i class="glyph c"></i></td><td class="m"><i class="glyph c"></i></td><td class="m"><i class="glyph c"></i></td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="prose">Diamonds read the whole diff, and circles run the full checks. A review with no findings has no commit B, so there’s nothing to answer or re-check, and CI runs on A. With plan approval on, each plan revision also runs the full checks and CI, even though only Markdown changed.</p>
+        <h2 id="ii-repeats">Where the same work repeats</h2>
+        <div class="tablewrap">
+          <table class="dots cmp">
+            <thead><tr><th>Step after the build</th><th>Commit</th><th data-col="low">low</th><th data-col="medium">medium</th><th data-col="high">high</th></tr></thead>
+            <tbody>
+              <tr><td>Whole-branch review</td><td>A, the built branch</td><td class="m" data-col="low"><i class="glyph d"></i></td><td class="m" data-col="medium"><i class="glyph d"></i></td><td class="m" data-col="high"><i class="glyph d"></i></td></tr>
+              <tr><td>Stage 5 verify</td><td>A</td><td class="m" data-col="low"><i class="glyph d"></i> <i class="glyph c"></i></td><td class="m" data-col="medium"><i class="glyph d"></i> <i class="glyph c"></i></td><td class="m" data-col="high"><i class="glyph d"></i> <i class="glyph c"></i></td></tr>
+              <tr><td>Stage 6 suite run</td><td>A again</td><td class="m" data-col="low"><span class="no">—</span></td><td class="m" data-col="medium"><span class="no">—</span></td><td class="m" data-col="high"><i class="glyph c"></i></td></tr>
+              <tr><td>Code review on the PR</td><td>A</td><td class="m" data-col="low"><span class="no">—</span></td><td class="m" data-col="medium"><span class="no">—</span></td><td class="m" data-col="high"><i class="glyph d"></i></td></tr>
+              <tr><td>Answering the review</td><td>B, after the fixes</td><td class="m" data-col="low"><i class="glyph c"></i></td><td class="m" data-col="medium"><i class="glyph c"></i></td><td class="m" data-col="high"><i class="glyph c"></i></td></tr>
+              <tr><td>Stage 8 recheck</td><td>B again</td><td class="m" data-col="low"><span class="no">only without CI</span></td><td class="m" data-col="medium"><i class="glyph c"></i></td><td class="m" data-col="high"><i class="glyph c"></i></td></tr>
+              <tr><td>CI</td><td>B, on GitHub</td><td class="m" data-col="low"><i class="glyph c"></i></td><td class="m" data-col="medium"><i class="glyph c"></i></td><td class="m" data-col="high"><i class="glyph c"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="prose">Diamonds read the whole diff, and circles run the full checks. A review with no findings has no commit B, so there’s nothing to answer or re-check, and CI runs on A.<span data-approval="on"> With plan approval on, each plan revision also runs the full checks and CI, even though only Markdown changed.</span></p>
 
-  <h2>Likely hot spots</h2>
-  <div class="prose"><p>This is a reading of the skills. Nothing here has been measured from a real run yet.</p></div>
-  <div class="spots">
-    <div class="spot"><h3>Unset jobs still inherit</h3><p>If the settings file leaves them out, the planner, build lead and review agent use the session model, and both whole-branch reviewers use the most capable model. Set those jobs to bring the cost down.</p></div>
-    <div class="spot"><h3>Code written twice</h3><p>The plan can hold the code, and the build writes it again. A small change skips the spec, but it still gets a plan and a build.</p></div>
-    <div class="spot"><h3>Two identical reviews at high</h3><p>At high, the build’s whole-branch review and the PR’s code review read the same diff with the same prompt. Below high, the PR’s code review is off.</p></div>
-    <div class="spot"><h3>Checks of a commit already checked</h3><p>At high, Stages 5 and 6 both check commit A. At medium and high, the Stage 8 recheck repeats the run the build lead just did.</p></div>
-    <div class="spot"><h3>Checks on a plan revision</h3><p>A revision changes only Markdown, yet it runs the full checks, and the push triggers CI.</p></div>
-    <div class="spot"><h3>The build lead’s context at review time</h3><p>It answers the review still carrying the build’s skills and bookkeeping. This is on purpose: the agent that built the code should answer for it.</p></div>
-  </div>
+        <h2 id="ii-spots">Likely hot spots</h2>
+        <div class="prose"><p>This is a reading of the skills, filtered to what applies at <span class="lvl" data-v="low|medium|high"></span> effort<span data-approval="on"> with plan approval on</span>. Nothing here has been measured from a real run yet.</p></div>
+        <div class="spots">
+          <div class="spot"><h3>Unset jobs still inherit</h3><p>If the settings file leaves them out, the planner, build lead and review agent use the session model, and the whole-branch review uses the most capable model<span data-effort="high">, as does the PR’s code review</span>. Set those jobs to bring the cost down.</p></div>
+          <div class="spot"><h3>Code written twice</h3><p>The plan can hold the code, and the build writes it again. A small change skips the spec, but it still gets a plan and a build.</p></div>
+          <div class="spot" data-effort="high"><h3>Two identical reviews</h3><p>At high, the build’s whole-branch review and the PR’s code review read the same diff with the same prompt. Below high, the PR’s code review is off.</p></div>
+          <div class="spot" data-effort="medium high"><h3>Checks of a commit already checked</h3><p><span data-effort="high">Stages 5 and 6 both check commit A. </span>The Stage 8 recheck repeats the run the build lead just did.</p></div>
+          <div class="spot" data-approval="on"><h3>Checks on a plan revision</h3><p>A revision changes only Markdown, yet it runs the full checks, and the push triggers CI.</p></div>
+          <div class="spot"><h3>The build lead’s context at review time</h3><p>It answers the review still carrying the build’s skills and bookkeeping. This is on purpose: the agent that built the code should answer for it.</p></div>
+        </div>
 
-  <p class="foot">Sources: <code>implement-issues</code> and its assets, <code>review-prs</code>, <code>answer-pr-reviews</code>, <code>fetch-issues</code> and <code>superpowers-issue-bridge</code> from this repo, plus Superpowers 7.0.0. File sizes were measured on 17 October 2026. The design behind this flow is in <code>docs/superpowers/specs/2026-10-17-delivery-settings-design.md</code>.</p>
+        <p class="foot">Sources: <code>implement-issues</code> and its assets, <code>review-prs</code>, <code>answer-pr-reviews</code>, <code>fetch-issues</code> and <code>superpowers-issue-bridge</code> from this repo, plus Superpowers 7.0.0. File sizes were measured on 17 October 2026. The design behind this flow is in <code>docs/superpowers/specs/2026-10-17-delivery-settings-design.md</code>.</p>
+      </article>
+    </div>
+  </main>
 </div>
+
+<script>
+(() => {
+  const SKILLS = [
+    { group: "Pipeline", plugin: "superpowers-issues", items: [
+      ["setup-issue-tracker", "Records where issues live (GitHub, local markdown, or another tracker) and how they are read and linked, in docs/agents/issue-tracker.md."],
+      ["brainstorm-to-issue", "Ends a brainstorm by filing an intent issue: the problem, the outcome, who is affected, the constraints already decided, and open questions."],
+      ["superpowers-issue-bridge", "Offers build now or track first inside Superpowers’ brainstorming, and carries an intent issue through spec, plan and pull request."],
+    ]},
+    { group: "Delivery", plugin: "superpowers-issues", items: [
+      ["implement-issues", "Agents build open issues into reviewed, ready pull requests."],
+      ["review-prs", "Reviews one or more pull requests against their issue and their code, and posts the findings as a comment review."],
+      ["answer-pr-reviews", "Answers the review on a pull request: fixes what holds up, pushes, and replies to every comment."],
+    ]},
+    { group: "Utility", items: [
+      ["fetch-issues", "Lists and reads open issues from the tracker this repo records, or one you name. Read-only.", "superpowers-issues"],
+      ["setup-agent-md", "Sets up one AGENTS.md shared by every coding agent, with a CLAUDE.md that imports it.", "repo-kit"],
+    ]},
+    { group: "Audit", plugin: "repo-kit", items: [
+      ["anti-koshary", "A two-pass audit of a codebase that has congealed: layer collapse, duplication and dead code first, then security and dependencies. It reports before it changes anything."],
+    ]},
+  ];
+  const READY = new Set(["implement-issues"]);
+  const SECTIONS = [
+    ["ii-settings", "The three settings"], ["ii-who", "Who runs what"], ["ii-approval", "Approving plans"],
+    ["ii-effort", "Effort, side by side"], ["ii-stages", "Stage by stage"], ["ii-loop", "The per-task loop"],
+    ["ii-seats", "Model seats"], ["ii-loads", "What each agent loads"], ["ii-repeats", "Where work repeats"], ["ii-spots", "Likely hot spots"],
+  ];
+  const LEVELS = ["low", "medium", "high"];
+  const NS = "http://www.w3.org/2000/svg";
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const state = { effort: "medium", approval: false };
+  try {
+    const saved = JSON.parse(localStorage.getItem("ii-config") || "null");
+    if (saved && LEVELS.includes(saved.effort)) state.effort = saved.effort;
+    if (saved && typeof saved.approval === "boolean") state.approval = saved.approval;
+  } catch (e) {}
+
+  /* ---------- Sidebar and placeholder pages ---------- */
+  const nav = document.getElementById("nav");
+  const ph = document.getElementById("placeholders");
+  SKILLS.forEach(g => {
+    const sec = document.createElement("div");
+    sec.className = "navgroup";
+    let html = `<h4>${esc(g.group)}</h4><ul>`;
+    g.items.forEach(([name, blurb, plugin]) => {
+      const ready = READY.has(name);
+      html += `<li><a class="nav-skill${ready ? "" : " soon"}" href="#${name}" data-skill="${name}">${name}${ready ? "" : '<span class="tag">soon</span>'}</a>`;
+      if (ready) html += `<ul class="subnav">${SECTIONS.map(([id, t]) => `<li><a href="#${id}" data-sec="${id}">${esc(t)}</a></li>`).join("")}</ul>`;
+      html += "</li>";
+      if (!ready) {
+        const art = document.createElement("article");
+        art.className = "page"; art.dataset.page = name; art.hidden = true;
+        art.innerHTML = `<header class="page-head prose"><div class="eyebrow">${esc(g.group)} · ${esc(plugin || g.plugin)}</div>
+          <h1>${name}</h1><p class="lede">${esc(blurb)}</p>
+          <div class="cmd">npx skills add ismail9k/skills@${name}</div></header>
+          <div class="soon-card"><h2>Documentation coming soon</h2>
+          <p>This page will get the same treatment as <a href="#implement-issues">implement-issues</a>: who does what, and how each setting changes the run. Until then, the skill’s own instructions are the reference.</p>
+          <p><a href="https://github.com/ismail9k/skills/blob/main/skills/${name}/SKILL.md">Read ${name}/SKILL.md on GitHub</a></p></div>`;
+        ph.appendChild(art);
+      }
+    });
+    sec.innerHTML = html + "</ul>";
+    nav.appendChild(sec);
+  });
+
+  /* ---------- Routing ---------- */
+  const pages = () => [...document.querySelectorAll("article.page")];
+  let current = null;
+  function route() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    let page = "implement-issues", anchor = null;
+    if (pages().some(p => p.dataset.page === id)) page = id;
+    else if (id && document.getElementById(id)) { anchor = document.getElementById(id); page = anchor.closest("article.page")?.dataset.page || page; }
+    if (page !== current) {
+      pages().forEach(p => { p.hidden = p.dataset.page !== page; });
+      document.querySelectorAll(".nav-skill").forEach(a => { if (a.dataset.skill === page) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+      document.title = `${page} · ismail9k/skills`;
+      current = page;
+    }
+    if (anchor) anchor.scrollIntoView(); else window.scrollTo(0, 0);
+    spy();
+    document.body.classList.remove("nav-open");
+    document.getElementById("menuBtn").setAttribute("aria-expanded", "false");
+  }
+  window.addEventListener("hashchange", route);
+
+  const menuBtn = document.getElementById("menuBtn");
+  menuBtn.addEventListener("click", () => {
+    const open = document.body.classList.toggle("nav-open");
+    menuBtn.setAttribute("aria-expanded", String(open));
+  });
+  document.getElementById("scrim").addEventListener("click", () => { document.body.classList.remove("nav-open"); menuBtn.setAttribute("aria-expanded", "false"); });
+
+  /* Highlight the section in view. */
+  const secLinks = new Map([...document.querySelectorAll(".subnav a")].map(a => [a.dataset.sec, a]));
+  let spyQueued = false;
+  function spy() {
+    spyQueued = false;
+    let best = null;
+    if (current === "implement-issues") SECTIONS.forEach(([id]) => { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < 140) best = id; });
+    secLinks.forEach((a, id) => a.classList.toggle("active", id === best));
+  }
+  window.addEventListener("scroll", () => { if (!spyQueued) { spyQueued = true; requestAnimationFrame(spy); } }, { passive: true });
+
+  /* ---------- Figure 1: the swimlane, laid out for the chosen level ---------- */
+  const LANES = [["Dispatcher", "your session"], ["Planner", "planner seat"], ["Build lead", "build-lead seat"], ["Superpowers subagents", "their own seats"], ["Review agent", "pr-reviewer seat"]];
+  const D = 0, P = 1, B = 2, S = 3, R = 4;
+  const MH = ["medium", "high"];
+  const by = (low, medium, high) => s => ({ low, medium, high })[s.effort];
+  const PHASES = [
+    { name: "Queue", sub: "Stages 1–2", nodes: [
+      { id: "q1", lane: D, slot: 0, t: "Read the queue", d: ["Issues, PRs, branches;", "plan, revise, build, skip"] },
+      { id: "q2", lane: D, slot: 1, t: "Settle the settings", d: ["Effort, approval, each seat;", "offer to save delivery.md"] } ] },
+    { name: "Plan", sub: "Stage 3", nodes: [
+      { id: "p1", lane: D, slot: 0, t: "Branch and brief", d: ["planner-brief.md with", "the full issue body"] },
+      { id: "p2", lane: P, slot: 1, t: "brainstorming", d: ["Seeded by the bridge;", "it sizes the work itself"] },
+      { id: "p3", lane: P, slot: 2, t: "Spec, for a project", d: ["A small change gets none:", "its notes open the plan"] },
+      { id: "p4", lane: S, slot: 2, t: "Spec check", d: ["spec-check seat; only", "when a spec was written"] },
+      { id: "p5", lane: P, slot: 3, t: "writing-plans", d: s => ["Plan with Intent-Issue;", s.approval ? "commit both and stop" : "commit both"] } ] },
+    { name: "Approval", sub: "plan approval on", gate: true, nodes: [
+      { id: "a1", lane: D, slot: 0, t: "Open the plan PR", d: ["Draft, plan-pr-body.md;", "the issue waits"] },
+      { id: "a2", lane: P, slot: 1, t: "Revise, later run", d: s => ["answer-pr-reviews on your", `comments: up to ${by("1 round", "2 rounds", "3 rounds")(s)}`], m: "c" },
+      { id: "a3", lane: D, slot: 2, t: "plan-approved found", d: ["You added the label; a", "later run builds it"] } ] },
+    { name: "Build", sub: "Stage 4", nodes: [
+      { id: "b1", lane: D, slot: 0, t: "Fill build-brief", d: ["Spec, plan, effort, and", "five Superpowers seats"] },
+      { id: "b2", lane: B, slot: 1, on: ["low"], t: "executing-plans", d: ["Builds every task itself,", "tests first"], m: "c" },
+      { id: "b3", lane: B, slot: 2, on: MH, t: "subagent-driven-dev.", d: ["A fresh agent per task;", "the loop in Figure 4"] },
+      { id: "b4", lane: S, slot: 2, on: MH, t: "Implement and review", d: s => ["Each task, then up to", `${by("", "2", "5")(s)} fix rounds per review`], m: "c" },
+      { id: "b5", lane: S, slot: 3, t: "Whole-branch review", d: ["final-reviewer seat; one", "fix pass if it finds any"], m: "d" },
+      { id: "b6", lane: B, slot: 4, t: "Report back", d: ["Stops before finishing", "the branch"] } ] },
+    { name: "Verify", sub: "Stage 5", nodes: [
+      { id: "v1", lane: D, slot: 0, t: "Verify the branch", d: ["Log and diff; tests, lint,", "typecheck into log files"], m: "cd" } ] },
+    { name: "Draft PR", sub: "Stage 6", nodes: [
+      { id: "d1", lane: D, slot: 0, t: "Open the draft PR", d: s => [s.approval ? "Converts the approved" : "A new draft PR,", s.approval ? (s.effort === "high" ? "plan PR; suite runs again" : "plan PR, same branch") : (s.effort === "high" ? "after one more suite run" : "from pr-body.md")], m: s => s.effort === "high" ? "c" : "" } ] },
+    { name: "Review", sub: "Stage 7", nodes: [
+      { id: "r1", lane: R, slot: 0, t: "Intent pass", d: ["Reads the PR, its issue,", "and existing comments"] },
+      { id: "r2", lane: R, slot: 1, on: ["high"], t: "Code pass", d: ["pr-code-reviewer seat;", "the same diff again"], m: "d" },
+      { id: "r3", lane: R, slot: 2, t: "Check and post", d: ["Confirms each finding;", "a COMMENT review"] } ] },
+    { name: "Answer", sub: "Stage 8", nodes: [
+      { id: "n1", lane: D, slot: 0, t: "Hand back the review", d: ["To the build lead, in", "its own worktree"] },
+      { id: "n2", lane: B, slot: 0, t: "answer-pr-reviews", d: ["Fix, check, push, and", "reply to each comment"], m: "c" },
+      { id: "n3", lane: D, slot: 1, on: MH, t: "Recheck pushed head", d: ["Runs the checks again", "on the pushed commit"], m: "c" },
+      { id: "n4", lane: D, slot: 2, t: "Wait for CI", d: s => s.effort === "low" ? ["CI is the evidence; a", "failure goes back once"] : ["Failures go back to the", `build lead: up to ${by("", "2", "3")(s)} tries`], m: "c" },
+      { id: "n5", lane: D, slot: 3, t: "Mark ready", d: ["gh pr ready; you merge"] } ] },
+    { name: "Report", sub: "Stage 9", nodes: [
+      { id: "e1", lane: D, slot: 0, t: "Report", d: ["Effort, plan state, and", "every seat’s model"] } ] },
+  ];
+  // kind: f = same-agent flow, h = hand-off, g = plan approval, x = CI failure going back.
+  const EDGES = [
+    ["q1", "q2", "f"], ["q2", "p1", "f"], ["p1", "p2", "h", "dispatch"], ["p2", "p3", "f"], ["p3", "p4", "h"], ["p3", "p5", "f"],
+    ["p5", "a1", "h", "report", { approval: true }], ["p5", "b1", "h", "report", { approval: false }],
+    ["a1", "a2", "g", "your comments"], ["a2", "a3", "g", "label added"], ["a1", "a3", "g", "", { dx: -50 }], ["a3", "b1", "f"],
+    ["b1", "b2", "h", "dispatch"], ["b1", "b3", "h", "dispatch"], ["b2", "b5", "h", "", { dx: 50 }], ["b3", "b4", "h"], ["b4", "b5", "h"],
+    ["b5", "b6", "h"], ["b6", "v1", "h", "report"], ["v1", "d1", "f"], ["d1", "r1", "h", "draft PR open; dispatch the reviewer"],
+    ["r1", "r2", "f"], ["r2", "r3", "f"], ["r1", "r3", "f"], ["r3", "n1", "h", "review posted"], ["n1", "n2", "h"],
+    ["n2", "n3", "h", "pushed", { route: "vh" }], ["n2", "n4", "h", "pushed", { route: "vh" }], ["n3", "n4", "f"],
+    ["n4", "n2", "x", "CI fails"], ["n4", "n5", "f"], ["n5", "e1", "f"],
+  ];
+  const val = (v, s) => typeof v === "function" ? v(s) : v;
+  const shows = (n, s) => !n.on || n.on.includes(s.effort);
+  const lx = l => 222 + 204 * l;
+
+  function swimlane(s) {
+    const pos = {}; const bands = []; let y = 64, i = 0;
+    PHASES.forEach(ph => {
+      if (ph.gate && !s.approval) return;
+      const vis = ph.nodes.filter(n => shows(n, s));
+      const slots = [...new Set(vis.map(n => n.slot))].sort((a, b) => a - b);
+      const h = slots.length * 74 + 24;
+      bands.push({ ph, y, h, shade: ph.gate ? "band-gate" : (i % 2 === 0 ? "band" : "") });
+      vis.forEach(n => { pos[n.id] = { n, x: lx(n.lane) - 94, y: y + 14 + slots.indexOf(n.slot) * 74 }; });
+      y += h; i++;
+    });
+    const H = y + 2;
+    const out = [];
+    out.push(`<title id="swt">One issue through implement-issues at ${s.effort} effort, by agent</title>`);
+    out.push(`<desc id="swd">Swimlane chart with five lanes: dispatcher, planner, build lead, Superpowers subagents, and review agent. Only the steps that run at ${s.effort} effort${s.approval ? ", with plan approval on," : ""} are shown.</desc>`);
+    out.push(`<defs>${[["a1", "ah", 7], ["a1f", "ahf", 6], ["a1g", "ahg", 7], ["a1x", "ahd", 7]].map(([id, c, w]) =>
+      `<marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="${w}" markerHeight="${w}" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="${c}"/></marker>`).join("")}</defs>`);
+    bands.forEach(b => {
+      if (b.shade) out.push(`<rect x="0" y="${b.y}" width="1144" height="${b.h}" class="${b.shade}"/>`);
+      out.push(`<text x="14" y="${b.y + 28}" class="ph">${esc(b.ph.name)}</text><text x="14" y="${b.y + 44}" class="phs">${esc(b.ph.sub)}</text>`);
+    });
+    LANES.forEach(([t, sub], l) => {
+      const c = lx(l);
+      out.push(`<line x1="${c}" y1="68" x2="${c}" y2="${H - 4}" class="guide"/><rect x="${c - 94}" y="10" width="188" height="44" rx="6" class="lanehead"/><text x="${c - 83}" y="29" class="lh">${t}</text><text x="${c - 83}" y="45" class="lhs">${sub}</text>`);
+    });
+    const cls = { f: ["ef", "a1f"], h: ["e", "a1"], g: ["eg", "a1g"], x: ["ed", "a1x"] };
+    EDGES.forEach(([from, to, kind, label, opt = {}]) => {
+      const a = pos[from], b = pos[to];
+      if (!a || !b) return;
+      if (opt.approval !== undefined && opt.approval !== s.approval) return;
+      // Skip a shortcut edge when the step it bypasses is on screen.
+      if (from === "r1" && to === "r3" && pos.r2) return;
+      if (from === "n2" && to === "n4" && pos.n3) return;
+      const acx = a.x + 94, bcx = b.x + 94, amid = a.y + 30;
+      let d, tx = null, ty = null;
+      if (a.n.lane === b.n.lane) {
+        const x = acx + (opt.dx || 0);
+        d = `M${x},${a.y + 60} L${x},${b.y}`;
+      } else if (a.y === b.y) {
+        const right = b.x > a.x;
+        d = `M${right ? a.x + 188 : a.x},${amid} L${right ? b.x : b.x + 188},${amid}`;
+      } else if (b.y > a.y && opt.route === "vh") {
+        const x = acx - 45, yy = b.y + 20, right = b.x > a.x;
+        d = `M${x},${a.y + 60} L${x},${yy} L${right ? b.x : b.x + 188},${yy}`;
+        tx = x + 6; ty = yy - 6;
+      } else if (b.y > a.y) {
+        const right = bcx > acx, sx = right ? a.x + 188 : a.x, x = bcx + (opt.dx || 0);
+        d = `M${sx},${amid} L${x},${amid} L${x},${b.y}`;
+        tx = right ? sx + 6 : x + 6; ty = amid - 6;
+      } else {
+        const right = bcx > acx, sx = right ? a.x + 188 : a.x, sy = a.y + 44, x = bcx + 45;
+        d = `M${sx},${sy} L${x},${sy} L${x},${b.y + 60}`;
+        tx = x + 6; ty = sy - 6;
+      }
+      out.push(`<path d="${d}" class="${cls[kind][0]}" marker-end="url(#${cls[kind][1]})"/>`);
+      if (label && tx !== null) out.push(`<text x="${tx}" y="${ty}" class="el">${esc(label)}</text>`);
+    });
+    Object.values(pos).forEach(({ n, x, y: by0 }) => {
+      const gate = PHASES.find(p => p.nodes.includes(n)).gate;
+      const c = gate ? "c-gate" : n.on ? "c-lvl" : "c-all";
+      const lines = val(n.d, s);
+      out.push(`<rect x="${x}" y="${by0}" width="188" height="60" rx="7" class="box ${c}"/><text x="${x + 10}" y="${by0 + 19}" class="bt">${esc(n.t)}</text>`);
+      lines.forEach((ln, k) => out.push(`<text x="${x + 10}" y="${by0 + 35 + k * 14}" class="bd">${esc(ln)}</text>`));
+      const m = val(n.m, s) || "";
+      if (m.includes("c")) out.push(`<circle cx="${x + 176}" cy="${by0 + 13}" r="5" class="mk-checks"><title>Runs the full tests, lint, typecheck</title></circle>`);
+      if (m.includes("d")) { const dx = m.includes("c") ? x + 160 : x + 176; out.push(`<path d="M${dx},${by0 + 7} L${dx + 6},${by0 + 13} L${dx},${by0 + 19} L${dx - 6},${by0 + 13} z" class="mk-diff"><title>Reads the whole branch diff</title></path>`); }
+    });
+    return `<svg class="fig" viewBox="0 0 1144 ${H}" role="img" aria-labelledby="swt swd" style="min-width:900px">${out.join("")}</svg>`;
+  }
+
+  /* ---------- Figure 3: agents started per issue ---------- */
+  function agentsChart(s) {
+    const f = { low: n => 5, medium: n => 2 * n + 5, high: n => 2 * n + 6 }[s.effort];
+    const label = { low: "low · 5", medium: "medium · 2N + 5", high: "high · 2N + 6" }[s.effort];
+    const X = n => 60 + (n - 1) * (460 / 7), Y = v => 260 - v * 9.2;
+    const o = [`<title id="agt">Agents started per issue at ${s.effort} effort, by plan size</title><desc id="agd">Line chart of ${label} agents for a plan of 1 to 8 tasks.</desc>`];
+    for (let v = 0; v <= 25; v += 5) o.push(`<line x1="60" y1="${Y(v)}" x2="520" y2="${Y(v)}" class="grid"/><text x="50" y="${Y(v) + 4}" class="tick" text-anchor="end">${v}</text>`);
+    for (let n = 1; n <= 8; n++) o.push(`<text x="${X(n).toFixed(1)}" y="280" class="tick" text-anchor="middle">${n}</text>`);
+    o.push(`<text x="290" y="298" class="tick" text-anchor="middle">tasks in the plan (N)</text>`);
+    const pts = [1, 2, 3, 4, 5, 6, 7, 8].map(n => [X(n), Y(f(n)), n, f(n)]);
+    o.push(`<path d="M${pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" L")}" class="line"/>`);
+    pts.forEach(([x, y, n, v]) => o.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${n === 8 ? 4.5 : 3}" class="pt"><title>${s.effort}, N=${n}: ${v} agents</title></circle>`));
+    o.push(`<text x="530" y="${(pts[7][1] + 4).toFixed(1)}" class="val">${label}</text>`);
+    return `<svg class="fig" viewBox="0 0 660 300" role="img" aria-labelledby="agt agd" style="min-width:520px">${o.join("")}</svg>`;
+  }
+
+  /* ---------- Figure 5: what each agent loads ---------- */
+  const LOADS = [
+    { t: "Build lead", sub: "this level", on: MH, segs: [["SDD", 32.6], ["answer-pr-reviews", 7.1], ["receiving-code-review", 6.2], ["build brief", 3.2]] },
+    { t: "Build lead", sub: "this level", on: ["low"], segs: [["executing-plans", 20.4], ["TDD", 9.6], ["answer-pr-reviews", 7.1], ["receiving-code-review", 6.2], ["build brief", 3.2]] },
+    { t: "Dispatcher", sub: "every run", segs: [["implement-issues", 17.5], ["finishing", 7.8], ["fetch-issues", 4.3], ["verification", 3.6]] },
+    { t: "Planner", sub: "every issue", segs: [["writing-plans", 10.3], ["brainstorming", 10.1], ["bridge", 7.7], ["planner brief", 2.7]] },
+    { t: "Planner, revising", sub: "per round", approval: true, gate: true, segs: [["answer-pr-reviews", 7.1], ["receiving-code-review", 6.2], ["planner brief", 2.7]] },
+    { t: "Review agent", sub: "every issue", segs: [["review-prs", 6.7], ["requesting-code-review, high", 3.0, ["high"]]] },
+    { t: "Task reviewer", sub: "×N", on: MH, segs: [["task-reviewer prompt", 9.0]] },
+    { t: "Final reviewer", sub: "every issue", segs: [["code-reviewer.md", 6.4]] },
+    { t: "PR code reviewer", sub: "high only", on: ["high"], segs: [["code-reviewer.md", 6.4]] },
+    { t: "Implementer", sub: "×N", on: MH, segs: [["implementer prompt", 6.3]] },
+    { t: "Re-reviewer", sub: "per fix round", on: MH, segs: [["re-review prompt", 4.8]] },
+    { t: "Spec check", sub: "when a spec", segs: [["builder-check prompt", 0.9]] },
+  ];
+  function loadsChart(s) {
+    const rows = LOADS.filter(r => (!r.on || r.on.includes(s.effort)) && (!r.approval || s.approval));
+    const K = 470 / 60, top = 24, H = top + rows.length * 38 + 26;
+    const o = [`<title id="bct">Skill and prompt text each agent loads at ${s.effort} effort</title><desc id="bcd">Horizontal bars in kilobytes for the ${rows.length} agents that run at ${s.effort} effort.</desc>`];
+    for (let k = 0; k <= 60; k += 10) { const x = 190 + k * K; o.push(`<line x1="${x.toFixed(1)}" y1="${top}" x2="${x.toFixed(1)}" y2="${H - 18}" class="grid"/><text x="${x.toFixed(1)}" y="${H - 4}" class="tick" text-anchor="middle">${k} KB</text>`); }
+    rows.forEach((r, i) => {
+      const y = top + 6 + i * 38;
+      o.push(`<text x="178" y="${y + 11}" class="bt" text-anchor="end">${esc(r.t)}</text><text x="178" y="${y + 25}" class="bd" text-anchor="end">${esc(r.sub)}</text>`);
+      let x = 190, total = 0;
+      r.segs.forEach(([name, kb, only]) => {
+        if (only && !only.includes(s.effort)) return;
+        const w = kb * K, c = only ? "c-high" : r.gate ? "c-gate" : r.on ? "c-lvl" : "c-all";
+        o.push(`<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="22" class="bar ${c}"><title>${esc(name)}: ${kb.toFixed(1)} KB</title></rect>`);
+        if (w > name.length * 6.2 + 12) o.push(`<text x="${(x + 6).toFixed(1)}" y="${y + 15}" class="seg">${esc(name)}</text>`);
+        x += w; total += kb;
+      });
+      const tok = Math.round(total / 4);
+      o.push(`<text x="${(x + 8).toFixed(1)}" y="${y + 15}" class="val">${total.toFixed(1)} KB${tok ? ` ≈ ${tok}k tokens` : ""}</text>`);
+    });
+    return `<svg class="fig" viewBox="0 0 780 ${H}" role="img" aria-labelledby="bct bcd" style="min-width:600px">${o.join("")}</svg>`;
+  }
+
+  /* ---------- Apply the configuration ---------- */
+  function apply() {
+    const s = state, ai = LEVELS.indexOf(s.effort);
+    document.body.dataset.effort = s.effort;
+    document.body.dataset.approval = s.approval ? "on" : "off";
+    document.querySelectorAll("[data-v]").forEach(el => { el.textContent = el.dataset.v.split("|")[ai] ?? ""; });
+    document.querySelectorAll("[data-a]").forEach(el => { el.textContent = el.dataset.a.split("|")[s.approval ? 1 : 0]; });
+    document.querySelectorAll("[data-effort]:not(body)").forEach(el => { el.hidden = !el.dataset.effort.split(" ").includes(s.effort) || (el.dataset.approval && el.dataset.approval !== document.body.dataset.approval); });
+    document.querySelectorAll("[data-approval]:not(body)").forEach(el => { el.hidden = el.dataset.approval !== document.body.dataset.approval || (el.dataset.effort && !el.dataset.effort.split(" ").includes(s.effort)); });
+    document.querySelectorAll("#seats tr[data-uses]").forEach(tr => tr.classList.toggle("unused", !tr.dataset.uses.split(" ").includes(s.effort)));
+    document.querySelectorAll('input[name="effort"]').forEach(r => { r.checked = r.value === s.effort; });
+    document.getElementById("approval").checked = s.approval;
+    document.getElementById("cfgSum").textContent = `/implement-issues ${s.effort} · plan approval ${s.approval ? "on" : "off"}`;
+    document.getElementById("swimlane").innerHTML = swimlane(s);
+    document.getElementById("agents").innerHTML = agentsChart(s);
+    document.getElementById("loads").innerHTML = loadsChart(s);
+    try { localStorage.setItem("ii-config", JSON.stringify(s)); } catch (e) {}
+  }
+  document.querySelectorAll('input[name="effort"]').forEach(r => r.addEventListener("change", () => { state.effort = r.value; apply(); }));
+  document.getElementById("approval").addEventListener("change", e => { state.approval = e.target.checked; apply(); });
+  document.querySelectorAll("[data-set-approval]").forEach(b => b.addEventListener("click", () => { state.approval = b.dataset.setApproval === "on"; apply(); }));
+
+  apply();
+  route();
+})();
+</script>
 </body>
 </html>
