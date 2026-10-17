@@ -8,6 +8,7 @@ description: >
   requests it opened are approved or have comments to answer. Works in Claude
   Code, Codex, or any agent that can dispatch subagents. Not for one issue the
   user is building themselves in this session.
+argument-hint: "[low|medium|high] [issue...]"
 ---
 
 # Implement Issues

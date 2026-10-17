@@ -6,6 +6,7 @@ description: >
   comments on my PRs", "reply to the review findings" — in Claude Code, Codex,
   or any other agent. Not for reviewing a pull request, and not for feedback
   given in the conversation.
+argument-hint: "[pr-number...|all] [owner/repo]"
 ---
 
 # Answer PR Reviews

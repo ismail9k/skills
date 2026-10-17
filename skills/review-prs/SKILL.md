@@ -5,6 +5,7 @@ description: >
   PR #12", "review the open PRs", "check the PRs the agents opened" — in
   Claude Code, Codex, or any other agent. Not for reviewing uncommitted local
   changes.
+argument-hint: "[pr-number...|all] [owner/repo]"
 ---
 
 # Review PRs

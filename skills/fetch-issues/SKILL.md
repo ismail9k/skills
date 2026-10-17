@@ -6,6 +6,7 @@ description: >
   local markdown, or another backend, or from a repository or project the
   user names. Read-only: not for creating, editing, closing, or triaging
   issues.
+argument-hint: "[owner/repo|project]"
 ---
 
 # Fetch Issues
