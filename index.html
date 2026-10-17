@@ -291,7 +291,6 @@ ol.stages li li { margin-top: 3px; }
           <div class="fact"><span class="lbl">Model seats this level uses</span><b data-v="5 of 10|8 of 10|10 of 10"></b></div>
           <div class="fact"><span class="lbl">Runs it takes to build one issue</span><b class="gate" data-a="1|2 or more"></b></div>
         </div>
-        <div class="note">Before this change, every issue got roughly today’s high-effort flow: one agent did both planning and building, with 2N + 5 agents, 3 full code reads, and 4 local check runs plus CI. You could choose the model for only 1 of 12 jobs, the implementer.</div>
 
         <h2 id="ii-who">Who runs what</h2>
         <div class="prose"><p>Each column is one agent, and time runs downward. Only the steps that run at <span class="lvl" data-v="low|medium|high"></span> effort are shown<span data-approval="on">, with the blue plan-approval band</span><span data-approval="off">; turn on plan approval to add its band</span>.</p></div>
@@ -493,7 +492,7 @@ ol.stages li li { margin-top: 3px; }
         <p class="prose">A value is a tier (<code>cheap</code>, <code>standard</code>, <code>strong</code>) that the file maps to a real model for each platform, <code>session</code>, an exact model name, or, for the implementer only, <code>by-task</code>. For the five seats Superpowers dispatches, your choice is an instruction rather than a guarantee, so the report shows the model each job actually ran on.</p>
 
         <h2 id="ii-loads">What each agent loads</h2>
-        <div class="prose"><p>This counts skill and prompt text only, measured from the installed files, for the agents that run at <span class="lvl" data-v="low|medium|high"></span> effort<span data-approval="on"> with plan approval on</span>. Code, diffs and test output come on top of it. Splitting the old single issue agent into a planner and a build lead keeps either agent from carrying both sets of skills.</p></div>
+        <div class="prose"><p>This counts skill and prompt text only, measured from the installed files, for the agents that run at <span class="lvl" data-v="low|medium|high"></span> effort<span data-approval="on"> with plan approval on</span>. Code, diffs and test output come on top of it. Planning and building are separate agents, so neither one carries both sets of skills.</p></div>
         <figure>
           <div class="scroll" id="loads"></div>
           <figcaption>Figure 5. Kilobytes of instructions for each agent, with tokens estimated at four characters per token.<span data-effort="high"> The review agent’s red segment loads only at high effort.</span></figcaption>
