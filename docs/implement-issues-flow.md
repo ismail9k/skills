@@ -5,7 +5,12 @@ pull request. It covers every agent the skill starts, which model each one runs
 on, what each one loads, and where the same work repeats. Use it as the map
 when you change the skill's cost or speed, or the models it uses.
 
-It describes the skills as written: `implement-issues`, `review-prs`,
+> **Baseline.** This map records the flow before effort levels, plan
+> approval, and per-seat models were added — today's `high` effort with plan
+> approval off is closest to it. The change and its reasons are in
+> [the delivery settings design](superpowers/specs/2026-10-17-delivery-settings-design.md).
+
+It describes the skills as written then: `implement-issues`, `review-prs`,
 `answer-pr-reviews`, `fetch-issues` and `superpowers-issue-bridge` from this
 repo, plus Superpowers 7.0.0's `brainstorming`, `writing-plans`,
 `subagent-driven-development` (SDD), `requesting-code-review`,

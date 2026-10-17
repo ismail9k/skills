@@ -100,15 +100,25 @@ These skills work in Claude Code, Codex, and other agents; `implement-issues` ne
 
 ### `implement-issues`
 
-Builds a batch of open issues, one pull request each. It gets the queue from `fetch-issues`, then asks two things: which model the implementers use — from the models your agent actually offers — and whether to build the issues one at a time or several in parallel.
+Builds a batch of open issues, one pull request each. Start it with an effort level — `/implement-issues low`, `medium`, or `high` — which sets how much review and checking each issue gets:
 
-Each issue gets its own worktree and branch (`feat/42-…`) and an agent that takes it through the usual flow: a spec seeded from the issue by the bridge, a plan, and Superpowers' subagent-driven development. Nobody is there to answer its questions, so it answers them from the issue and records every decision. The dispatcher re-runs the checks itself, then opens a draft pull request with `Closes #42` — or `Relates to #42`, naming what's left, when the work is partial — and the agent's decisions listed in the body. Steps nothing in the repository can do, like provisioning a service or checking a page by hand, are listed as follow-ups and don't make the work partial. At the end it asks whether each partial pull request fully resolves its issue anyway, and switches it to `Closes #42`, or your tracker's own closing syntax, if you say yes. If your tracker has nothing a pull request can write to close an issue, it tells you which issues to close by hand once their pull requests merge.
+| | low | medium | high |
+| --- | --- | --- | --- |
+| Build | one agent runs the whole plan, then one whole-branch review | a fresh agent per task, reviewed after each, up to 2 fix rounds | the same, up to 5 fix rounds |
+| Review on the pull request | intent check | intent check | intent check and a second full code review |
+| Checks after the review fixes | CI | local and CI | local and CI, plus one more run before the PR opens |
 
-Next, a separate agent runs `review-prs` on the draft and leaves its findings as comments. The agent that built the issue answers them with `answer-pr-reviews`: it fixes what holds, pushes back on what doesn't, pushes the fixes, and replies in each thread. The dispatcher re-runs the checks with `verification-before-completion`, waits for the pull request's CI on the pushed head — sending any failing check's log back to the same agent once — and marks the pull request ready. A pull request stays a draft when the checks fail, locally or in CI, or a finding couldn't be fixed. It never merges.
+It gets the queue from `fetch-issues`, then settles its settings: the effort, whether you approve plans first, and which model does each job — a cheap one for implementation and a strong one for review, say, chosen from the models your agent actually offers. It saves your answers to `docs/agents/delivery.md`, after showing you the change, so the next run asks only for what's missing. Then it asks whether to build the issues one at a time or several in parallel.
+
+Each issue gets its own worktree and branch (`feat/42-…`) and two agents. A planner seeds Superpowers' brainstorming from the issue through the bridge and writes the spec and plan. A build lead executes the plan with Superpowers — inline at low effort, task by task otherwise. Nobody is there to answer their questions, so they answer them from the issue and record every decision.
+
+With plan approval on, each issue stops after its spec and plan and opens a draft plan pull request. Comment on its lines and the next run revises them; add the `plan-approved` label and the next run builds on the same branch, turning that pull request into the built one. The dispatcher re-runs the checks itself, then opens a draft pull request with `Closes #42` — or `Relates to #42`, naming what's left, when the work is partial — and the agent's decisions listed in the body. Steps nothing in the repository can do, like provisioning a service or checking a page by hand, are listed as follow-ups and don't make the work partial. At the end it asks whether each partial pull request fully resolves its issue anyway, and switches it to `Closes #42`, or your tracker's own closing syntax, if you say yes. If your tracker has nothing a pull request can write to close an issue, it tells you which issues to close by hand once their pull requests merge.
+
+Next, a separate agent runs `review-prs` on the draft and leaves its findings as comments. The build lead answers them with `answer-pr-reviews`: it fixes what holds, pushes back on what doesn't, pushes the fixes, and replies in each thread. The dispatcher re-runs the checks with `verification-before-completion` at medium and high effort, waits for the pull request's CI on the pushed head — sending a failing check's log back to the build lead, up to the effort's number of attempts — and marks the pull request ready. A pull request stays a draft when the checks fail, locally or in CI, or a finding couldn't be fixed. It never merges.
 
 ### `review-prs`
 
-Reviews one pull request, a list, or all open ones, and leaves the findings as inline comments — with a GitHub suggested change wherever the fix is concrete, so the author applies it with one click. Each pull request gets two passes: does it do what its linked intent issue asks, and is the code right? Findings are checked against the code before they're posted, and the review is always a comment — approval stays with you.
+Reviews one pull request, a list, or all open ones, and leaves the findings as inline comments — with a GitHub suggested change wherever the fix is concrete, so the author applies it with one click. Each pull request gets two passes: does it do what its linked intent issue asks, and is the code right? `implement-issues` skips the second below high effort, since its build already ended with a whole-branch code review. Findings are checked against the code before they're posted, and the review is always a comment — approval stays with you.
 
 ### `answer-pr-reviews`
 
@@ -242,7 +252,7 @@ Claude Code has them built in. Codex needs them switched on in `~/.codex/config.
 multi_agent = true
 ```
 
-On any other agent, check that it can dispatch subagents before running `implement-issues` — it builds each issue with Superpowers' subagent-driven development.
+On any other agent, check that it can dispatch subagents before running `implement-issues` — it dispatches a planner and a build lead for each issue, and at medium and high effort the build lead runs Superpowers' subagent-driven development.
 
 ### Your tracker's tool — for Jira, Linear, and others
 
@@ -377,7 +387,7 @@ Pick track first — or just say "file this as an issue" — and the session end
 
 Or have agents build several tracked issues at once, then review what they opened:
 
-> Work through the open issues
+> /implement-issues medium
 
 > Review the open PRs
 

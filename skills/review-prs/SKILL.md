@@ -63,9 +63,19 @@ Constraint the diff breaks.
 dispatch its code reviewer with the pull request's title and description as
 the description, the intent issue — or the pull request's body, when there is
 none — as the requirements, and `BASE_SHA` and `HEAD_SHA`. Dispatch it on the
-most capable model your platform offers. Reviews change nothing, so dispatch
-the reviewers for several pull requests at the same time. Without subagent
-support, review each diff yourself.
+most capable model your platform offers — unless `docs/agents/delivery.md`
+exists and its `pr-code-reviewer` seat resolves to a model your platform's
+dispatch accepts: a tier looked up in its Tiers table for this platform, or
+an exact name. Use that model instead. When the seat is missing or doesn't
+resolve, use the most capable model and say so in the report; never stop
+over it. Reviews change nothing, so dispatch the reviewers for several pull
+requests at the same time. Without subagent support, review each diff
+yourself.
+
+**Intent-only.** When you were dispatched with the code pass off —
+`implement-issues` does this below high effort, because the build already
+ended with a whole-branch code review — skip the code pass. Say in the
+review body that it was skipped, and why.
 
 **Check every finding before it is posted.** Open the code each finding
 points at and confirm it holds. A reviewer can be wrong, and a wrong comment
@@ -139,5 +149,7 @@ review's URL. Then list the findings dropped in the check step, and why.
   is anchored to, or that isn't the complete new text of those lines.
 - Don't anchor a comment to a line outside the pull request's diff.
 - Don't post a finding that is already on the pull request.
+- Don't skip the code pass unless you were dispatched with it off, and then
+  say so in the review body.
 - Don't skip the intent pass silently — when there is no linked issue, say so
   in the review body.
