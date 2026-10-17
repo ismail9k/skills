@@ -67,7 +67,6 @@ img { max-width: 100%; }
   color: var(--fg); text-decoration: none; font: 500 14px/1.35 var(--mono); }
 .nav-skill:hover { background: var(--band); }
 .nav-skill.soon { color: var(--muted); }
-.nav-skill .tag { font: 500 10px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 6px; flex: none; }
 .nav-skill[aria-current="page"] { background: var(--gate-bg); color: var(--accent); }
 .subnav { list-style: none; margin: 4px 0 6px 10px; padding: 0 0 0 10px; border-left: 1px solid var(--line); }
 .subnav a { display: block; padding: 3px 8px; font-size: 13.5px; color: var(--muted); text-decoration: none; border-radius: 5px; }
@@ -580,7 +579,7 @@ ol.stages li li { margin-top: 3px; }
     let html = `<h4>${esc(g.group)}</h4><ul>`;
     g.items.forEach(([name, blurb, plugin]) => {
       const ready = READY.has(name);
-      html += `<li><a class="nav-skill${ready ? "" : " soon"}" href="#${name}" data-skill="${name}">${name}${ready ? "" : '<span class="tag">soon</span>'}</a>`;
+      html += `<li><a class="nav-skill${ready ? "" : " soon"}" href="#${name}" data-skill="${name}">${name}</a>`;
       if (ready) html += `<ul class="subnav">${SECTIONS.map(([id, t]) => `<li><a href="#${id}" data-sec="${id}">${esc(t)}</a></li>`).join("")}</ul>`;
       html += "</li>";
       if (!ready) {
