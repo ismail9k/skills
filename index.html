@@ -139,7 +139,6 @@ code { font-family: var(--mono); font-size: 0.88em; background: var(--band); pad
 .fact { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--lvl); border-radius: 8px; padding: 12px 16px 14px; min-width: 0; }
 .fact .lbl { display: block; color: var(--muted); font-size: 13.5px; line-height: 1.4; }
 .fact b { display: block; margin-top: 8px; font: 600 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
-.fact b.gate { color: var(--gate); }
 .settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 18px; }
 .setting { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; min-width: 0; }
 .setting h3 { margin: 0; font-size: 16px; }
@@ -288,8 +287,6 @@ ol.stages li li { margin-top: 3px; }
           <div class="fact"><span class="lbl">Agents started per issue, for a plan of N tasks</span><b data-v="5|2N + 5|2N + 6"></b></div>
           <div class="fact"><span class="lbl">Full local check runs after the build, plus CI</span><b data-v="2|3|4"></b></div>
           <div class="fact"><span class="lbl">Full code reads of the branch diff after the build</span><b data-v="2|2|3"></b></div>
-          <div class="fact"><span class="lbl">Model seats this level uses</span><b data-v="5 of 10|8 of 10|10 of 10"></b></div>
-          <div class="fact"><span class="lbl">Runs it takes to build one issue</span><b class="gate" data-a="1|2 or more"></b></div>
         </div>
 
         <h2 id="ii-who">Who runs what</h2>
@@ -823,7 +820,6 @@ ol.stages li li { margin-top: 3px; }
     document.body.dataset.effort = s.effort;
     document.body.dataset.approval = s.approval ? "on" : "off";
     document.querySelectorAll("[data-v]").forEach(el => { el.textContent = el.dataset.v.split("|")[ai] ?? ""; });
-    document.querySelectorAll("[data-a]").forEach(el => { el.textContent = el.dataset.a.split("|")[s.approval ? 1 : 0]; });
     document.querySelectorAll("[data-effort]:not(body)").forEach(el => { el.hidden = !el.dataset.effort.split(" ").includes(s.effort) || (el.dataset.approval && el.dataset.approval !== document.body.dataset.approval); });
     document.querySelectorAll("[data-approval]:not(body)").forEach(el => { el.hidden = el.dataset.approval !== document.body.dataset.approval || (el.dataset.effort && !el.dataset.effort.split(" ").includes(s.effort)); });
     document.querySelectorAll("#seats tr[data-uses]").forEach(tr => tr.classList.toggle("unused", !tr.dataset.uses.split(" ").includes(s.effort)));
