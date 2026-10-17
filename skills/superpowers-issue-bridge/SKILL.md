@@ -5,6 +5,7 @@ description: >
   including when it is unknown whether an intent issue exists — and when work
   that started from an intent issue is being merged or opened as a pull
   request.
+argument-hint: "[issue-reference]"
 ---
 
 # Superpowers Issue Bridge

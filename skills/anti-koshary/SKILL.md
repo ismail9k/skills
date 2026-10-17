@@ -14,6 +14,7 @@ description: >
   "technical debt," "this is unmaintainable," "duplicated logic," "dead
   code," "what's wrong with my code," or ask for a security review.
   Trigger it even when they never use the word "audit."
+argument-hint: "[directory|diff]"
 ---
 
 # Anti-Koshary

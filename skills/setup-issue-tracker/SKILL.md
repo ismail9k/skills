@@ -3,6 +3,7 @@ name: setup-issue-tracker
 description: >
   Use when a repository needs to choose or change where issues and feature
   intents live, or when docs/agents/issue-tracker.md is missing or stale.
+argument-hint: "[github|local-markdown|<backend>]"
 ---
 
 # Setup Issue Tracker

@@ -7,6 +7,7 @@ description: >
   this", "track it first", or picking track-first when
   superpowers-issue-bridge asks. Not while the problem is still being
   explored.
+argument-hint: "[title]"
 ---
 
 # Brainstorm → Intent Issue
