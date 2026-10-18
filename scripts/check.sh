@@ -7,6 +7,7 @@
 #      plugin, and no plugin.json declares skills that would conflict with it
 #   3. no skill references another by path (each is installed alone)
 #   4. anti-koshary's grep patterns still match a file with a known hit
+#   5. implement-issues' agents, presets and Codex path agree across its files
 #
 # (4) is the one that matters most: a broken regex looks exactly like a clean
 # repo, so the patterns are run against a fixture with planted hits, plus
@@ -61,6 +62,73 @@ for d in skills/*/; do
   if [ -n "$hits" ]; then bad "$b references another skill by path:"; printf '%s\n' "$hits" | sed 's/^/          /'
   else ok "$b"; fi
 done
+
+# ------------------------------- 5. implement-issues settings stay consistent
+head_ "implement-issues settings stay consistent"
+II=skills/implement-issues
+AGENTS_6="Planner|Build lead|Implementers|Task reviewers|Review agent|PR code reviewer"
+has() { # file, fixed string
+  if grep -qF -- "$2" "$1" 2>/dev/null; then ok "$1 has: $2"; else bad "$1 is missing: $2"; fi
+}
+models=$(grep -rniE '(^|[^[:alnum:]])(opus|sonnet|haiku|fable|gpt-?[0-9])' \
+  skills/implement-issues skills/review-prs README.md AGENTS.md docs/implement-issues-flow.md 2>/dev/null)
+if [ -n "$models" ]; then bad "a model name in skill or doc text:"; printf '%s\n' "$models" | sed 's/^/          /'
+else ok "no model names in implement-issues, review-prs or their docs"; fi
+heads=$(sed -n 's/^## //p' "$II/assets/delivery.md" | tr '\n' '|')
+if [ "$heads" = "Effort|Plan approval|Preset|Agents|Tiers|Seats|" ]; then ok "delivery.md sections in order"
+else bad "delivery.md sections are '$heads'"; fi
+IFS='|'; for a in $AGENTS_6; do
+  grep -q "^| $a |" "$II/assets/delivery.md" && ok "delivery.md row: $a" || bad "delivery.md has no row: $a"
+done; unset IFS
+pt=$(awk '/^ *\| Agent \| budget \| balanced \| max \|$/{f=1;next} f&&/^ *\|/{print} f&&!/^ *\|/{exit}' "$II/SKILL.md" \
+  | sed 's/^ *| \([^|]*\) |.*/\1/' | grep -v -- '---' | tr '\n' '|')
+if [ "$pt|" = "$AGENTS_6||" ] || [ "$pt" = "$AGENTS_6|" ]; then ok "SKILL.md preset table has the six agents"
+else bad "SKILL.md preset table rows are '$pt'"; fi
+
+for s in "not used at this effort" "set each agent" '"builds" or "executes"' "the run starts only after the user confirms"; do has "$II/SKILL.md" "$s"; done
+s9=$(awk '/^## Stage 9/{f=1;next} /^## /{f=0} f' "$II/SKILL.md")
+case "$s9" in *provider*) ok "Stage 9 reports each provider" ;; *) bad "Stage 9 doesn't mention the provider" ;; esac
+
+RP=skills/review-prs/SKILL.md
+for s in "## Report-only mode" "Context:" "pr.json" "comments.json" "issue.md" "exactly one fenced" "don't call gh" "PR code reviewer" "Preset"; do has "$RP" "$s"; done
+
+RB=$II/assets/review-brief.md
+if [ -f "$RB" ]; then
+  for s in "Report-only: yes" "Context:" "<owner/repo>" "<number>" "<worktree>" "<context dir>" "<code pass: on|off>" "<PR code reviewer model>"; do has "$RB" "$s"; done
+else bad "$RB does not exist"; fi
+for s in "codex exec" "-s read-only" "codex login status" "Codex is for reviews only" "doesn't accept stops the run" "exactly one fenced"; do has "$II/SKILL.md" "$s"; done
+stray=$(awk '/^## /{st=$0} /codex exec/ && st !~ /^## Stage [27] /{print FILENAME": "st}' "$II/SKILL.md" | sort -u)
+if [ -n "$stray" ]; then bad "codex exec outside Stages 2 and 7: $stray"; else ok "codex exec only in Stages 2 and 7"; fi
+
+FLOW=docs/implement-issues-flow.md
+IFS='|'; for a in $AGENTS_6; do has "$FLOW" "$a"; has README.md "$a"; done; unset IFS
+grep -q "participant .* as Implementers" "$FLOW" && ok "flow map has an Implementers participant" || bad "flow map has no Implementers participant"
+grep -q "participant .* as Task reviewers" "$FLOW" && ok "flow map has a Task reviewers participant" || bad "flow map has no Task reviewers participant"
+grep -q "participant .* as Superpowers subagents" "$FLOW" && bad "flow map still has a Superpowers subagents participant" || ok "flow map has no Superpowers subagents participant"
+for s in budget balanced max Codex; do has README.md "$s"; done
+has AGENTS.md "review-brief.md"
+
+# the final-reviewer seat (Task reviewers) runs at every effort, so low may not mark Task reviewers unused
+grep -q "Implementers and Task reviewers \"not used at this effort\"" "$II/SKILL.md" \
+  && bad "SKILL.md marks Task reviewers unused at low, but the final review runs at every effort" \
+  || ok "Task reviewers stay in use at low (final review)"
+has "$II/SKILL.md" "final review only"
+
+# final review fixes
+for s in "ask for that provider's cheap, standard and strong models" "again on the final table" "sets the implementer seat, not the Implementers agent" "the code pass's model" "multi-agent" "<Review agent's resolved Codex model>" 'commit_id` is `pr.json`'"'"'s `headRefOid`' '"event": "COMMENT"'; do has "$II/SKILL.md" "$s"; done
+for s in "the model the code pass ran on" 'a preset sets the PR code reviewer to `standard` for budget and `strong` for balanced and max'; do has "$RP" "$s"; done
+grep -q "^  | PR code reviewer | standard | strong | strong |$" "$II/SKILL.md" && ok "preset PR code reviewer row matches review-prs' inline line" || bad "preset PR code reviewer row changed — update review-prs' inline line too"
+
+# setup-delivery carries its own copies (skills install alone), so pin them to implement-issues'
+SD=skills/setup-delivery
+if [ -f "$SD/SKILL.md" ]; then
+  cmp -s "$SD/assets/delivery.md" "$II/assets/delivery.md" && ok "setup-delivery's delivery.md template matches implement-issues'" || bad "setup-delivery's delivery.md template differs from implement-issues'"
+  presets() { awk '/^ *\| Agent \| budget \| balanced \| max \|$/{f=1;next} f&&/^ *\|/{print} f&&!/^ *\|/{exit}' "$1" | sed 's/^ *//'; }
+  [ "$(presets "$SD/SKILL.md")" = "$(presets "$II/SKILL.md")" ] && [ -n "$(presets "$SD/SKILL.md")" ] && ok "setup-delivery's preset table matches implement-issues'" || bad "setup-delivery's preset table differs from implement-issues'"
+  IFS='|'; for a in $AGENTS_6; do has "$SD/SKILL.md" "$a"; done; unset IFS
+  for s in "codex login status" "Show the diff" "Re-running"; do has "$SD/SKILL.md" "$s"; done
+else bad "$SD/SKILL.md does not exist"; fi
+for f in "$II/SKILL.md" README.md AGENTS.md; do has "$f" "setup-delivery"; done
 
 # ------------------------------- 4. anti-koshary patterns vs a known-hit fixture
 head_ "anti-koshary security patterns match planted hits"

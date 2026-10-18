@@ -9,6 +9,7 @@ The problem this solves: brainstorming happens in chat, gets summarized into an 
 ```
 setup-agent-md            (optional, once per repo)
 setup-issue-tracker       (once per repo: GitHub, Jira, local markdown, …)
+setup-delivery            (optional, once per repo: effort, plan approval, models)
 
 Superpowers brainstorming
         │   problem understood — superpowers-issue-bridge asks:
@@ -98,6 +99,10 @@ A read-only utility: lists the open issues in your tracker with their complete b
 
 These skills work in Claude Code, Codex, and other agents; `implement-issues` needs one that can dispatch subagents.
 
+### `setup-delivery`
+
+Optional. Saves `implement-issues`' settings once per repo in `docs/agents/delivery.md`, so its runs stop asking: the default effort, plan approval, a preset or a model for each agent, the models behind each tier, and whether Codex reviews. If the Review agent uses Codex, it checks Codex right away — installed, logged in, `review-prs` available — so a broken setup shows here rather than mid-run. It shows the diff before writing and only writes what you settled. Skip it and `implement-issues` asks for the same things on each run, and offers to save your answers.
+
 ### `implement-issues`
 
 Builds a batch of open issues, one pull request each. Start it with an effort level — `/implement-issues low`, `medium`, or `high` — which sets how much review and checking each issue gets:
@@ -109,6 +114,10 @@ Builds a batch of open issues, one pull request each. Start it with an effort le
 | Checks after the review fixes | CI | local and CI | local and CI, plus one more run before the PR opens |
 
 It gets the queue from `fetch-issues`, then settles its settings: the effort, whether you approve plans first, and which model does each job — a cheap one for implementation and a strong one for review, say, chosen from the models your agent actually offers. It saves your answers to `docs/agents/delivery.md`, after showing you the change, so the next run asks only for what's missing. Then it asks whether to build the issues one at a time or several in parallel.
+
+Models are set per agent — six of them work on an issue: the **Planner**, the **Build lead**, the **Implementers**, the **Task reviewers**, the **Review agent**, and the **PR code reviewer** inside the review. Pick one preset to set them all — `budget` (strong plans, cheap implementers), `balanced`, or `max` — then override any agent you like, or say it up front: "the strong model plans, the cheap one builds". The run prints the six agents with their models and starts only once you confirm.
+
+The Review agent can also run on Codex, on the same machine, so a different model family reviews what Claude built: set it to `codex:` and a tier or a Codex model. Codex runs read-only — it reads the pull request and returns its review, and the dispatcher posts it.
 
 Each issue gets its own worktree and branch (`feat/42-…`) and two agents. A planner seeds Superpowers' brainstorming from the issue through the bridge and writes the spec and plan. A build lead executes the plan with Superpowers — inline at low effort, task by task otherwise. Nobody is there to answer their questions, so they answer them from the issue and record every decision.
 
@@ -206,10 +215,11 @@ What to install depends on which skills you use. Every skill assumes `git`.
 | --- | --- |
 | `setup-agent-md` | Nothing else |
 | `setup-issue-tracker` | Nothing else |
+| `setup-delivery` | Nothing else; the Codex CLI only to check a Codex reviewer |
 | `brainstorm-to-issue` | `gh` for a GitHub tracker, or your tracker's own tool |
 | `superpowers-issue-bridge` | Superpowers; `gh` for a GitHub tracker |
 | `fetch-issues` | `gh` for a GitHub tracker, or your tracker's own tool |
-| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues`, `superpowers-issue-bridge`, `review-prs`, and `answer-pr-reviews` skills installed alongside it |
+| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues`, `superpowers-issue-bridge`, `review-prs`, and `answer-pr-reviews` skills installed alongside it; the Codex CLI, logged in and with `review-prs` installed for Codex, when the Review agent uses Codex |
 | `review-prs` | Superpowers and `gh`; subagents optional — without them it reviews inline |
 | `answer-pr-reviews` | Superpowers and `gh` |
 | `anti-koshary` | Nothing required; optional audit tools make its dependency scan complete |
@@ -276,7 +286,7 @@ repository. Skill names stay the same in both.
 
 | Plugin | Skills |
 | --- | --- |
-| `superpowers-issues` | `setup-issue-tracker`, `brainstorm-to-issue`, `superpowers-issue-bridge`, `fetch-issues`, `implement-issues`, `review-prs`, `answer-pr-reviews` |
+| `superpowers-issues` | `setup-issue-tracker`, `setup-delivery`, `brainstorm-to-issue`, `superpowers-issue-bridge`, `fetch-issues`, `implement-issues`, `review-prs`, `answer-pr-reviews` |
 | `repo-kit` | `setup-agent-md`, `anti-koshary` — each works on any repo with nothing else installed |
 
 ### Claude Code — plugins
@@ -305,7 +315,7 @@ want to work on and pass the checkout's absolute path:
 claude --plugin-dir /absolute/path/to/skills
 ```
 
-That loads all nine skills for the session as one plugin named after the
+That loads all ten skills for the session as one plugin named after the
 directory (`/skills:anti-koshary`). Run `/reload-plugins` after each edit. See
 the [Claude Code plugin guide](https://code.claude.com/docs/en/plugins).
 
@@ -365,6 +375,7 @@ npx skills add ismail9k/skills@fetch-issues
 npx skills add ismail9k/skills@superpowers-issue-bridge
 npx skills add ismail9k/skills@review-prs
 npx skills add ismail9k/skills@answer-pr-reviews
+npx skills add ismail9k/skills@setup-delivery   # optional
 ```
 
 ## Usage

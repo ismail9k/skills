@@ -32,6 +32,7 @@
       ],
       "skills": [
         "./skills/setup-issue-tracker",
+        "./skills/setup-delivery",
         "./skills/brainstorm-to-issue",
         "./skills/superpowers-issue-bridge",
         "./skills/fetch-issues",

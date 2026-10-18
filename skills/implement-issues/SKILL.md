@@ -54,6 +54,8 @@ Use your platform's equivalents.
   one is missing, name it and stop.
 - A GitHub repository and `gh`, with `gh auth status` passing — pull requests
   and their reviews live there, wherever the issues live.
+- When the Review agent uses Codex: the Codex CLI, logged in, with
+  `review-prs` installed for Codex.
 
 ## Settings
 
@@ -79,18 +81,76 @@ the saved ones; its shape is `assets/delivery.md`.
 
 - **Plan approval** — on or off; off when the file doesn't say.
 
-- **Models**, one per seat. Each value is a tier (`cheap`, `standard`,
-  `strong`) looked up in the file's Tiers table for this platform, `session`,
-  an exact model name, or — for the implementer — `by-task`, which leaves the
-  choice to `subagent-driven-development`'s own rules. A seat the file leaves
-  out falls back:
+- **Models**, one per agent. Six agents work on an issue, and each sets the
+  model of one or more seats:
 
-  | Seat | Dispatched by | When not set |
+  | Agent | Seats | Dispatched by |
   | --- | --- | --- |
-  | planner, build-lead, pr-reviewer | you | session model |
-  | implementer | Superpowers | asked in Stage 2 |
-  | spec-check, task-reviewer, re-reviewer, escalation, final-reviewer | Superpowers | that skill's own rule |
-  | pr-code-reviewer | `review-prs` | that skill's own rule |
+  | Planner | planner, spec-check | you |
+  | Build lead | build-lead | you |
+  | Implementers | implementer, escalation | Superpowers, inside the build lead |
+  | Task reviewers | task-reviewer, re-reviewer, final-reviewer | Superpowers, inside the build lead |
+  | Review agent | pr-reviewer | you |
+  | PR code reviewer | pr-code-reviewer | `review-prs`, inside the review agent |
+
+  Your session is the dispatcher; it has no setting.
+
+  **Values.** Each value is a tier (`cheap`, `standard`, `strong`) looked up
+  in the file's Tiers table, `session`, an exact model name, or — for
+  Implementers — `by-task`, which leaves the choice to
+  `subagent-driven-development`'s own rules. Review agent may also take
+  `codex:` and a tier or a Codex model; see Codex as a reviewer, below.
+
+  **Presets.** One word sets every agent left unset. Presets are tiers:
+
+  | Agent | budget | balanced | max |
+  | --- | --- | --- | --- |
+  | Planner | strong | strong | strong |
+  | Build lead | standard | standard | strong |
+  | Implementers | cheap | standard | strong |
+  | Task reviewers | standard | standard | strong |
+  | Review agent | standard | standard | strong |
+  | PR code reviewer | standard | strong | strong |
+
+  **Precedence.** For each seat, the first of these that names it wins:
+
+  1. a run override — from the request or from Stage 2;
+  2. the seat's row in the file's Seats table;
+  3. its agent's row in the Agents table;
+  4. the Preset;
+  5. the fallback below.
+
+  A value resolves whole: provider and model come from the same level, never
+  a provider from one and a model from another. A value with no `codex:`
+  prefix runs on the provider of whoever dispatches that agent — your session
+  for the Planner, Build lead and Review agent; the build lead's provider for
+  Implementers and Task reviewers; the review agent's for the PR code
+  reviewer. A tier resolves in that provider's Tiers column.
+
+  **Escalation.** Fix rounds 4–5 exist because an implementer got stuck.
+  When the Implementers value came from a run override, the Agents row or
+  the Preset, and the escalation seat isn't set on its own, escalation runs
+  one tier above it on the same provider: `cheap` → `standard`, `standard`
+  → `strong`, `strong` stays. When that value is an exact model, `session`
+  or `by-task`, or no Implementers value is set, escalation follows
+  `subagent-driven-development`'s own rule.
+
+  **Codex as a reviewer.** Only the Review agent may name `codex:`. Codex
+  reads and reports; it never writes, and you post its review (Stage 7). The
+  PR code reviewer runs inside the review, so it follows the Review agent's
+  provider. Any other agent that names `codex:` stops the run in Stage 2:
+  Codex is for reviews only. A model the parent's provider doesn't accept
+  stops the run too — a Claude model on the PR code reviewer under a Codex
+  review agent, for example.
+
+  **Fallback.** A seat nothing above names falls back:
+
+  | Seat | When not set |
+  | --- | --- |
+  | planner, build-lead, pr-reviewer | session model |
+  | implementer | asked in Stage 2 |
+  | spec-check, task-reviewer, re-reviewer, escalation, final-reviewer | that skill's own rule |
+  | pr-code-reviewer | that skill's own rule |
 
 ## Stage 1 — Build the queue
 
@@ -125,19 +185,65 @@ build), dependency — then the waiting and skipped lists.
 Ask before dispatching anything.
 
 1. **Settings.** Print the effort and where it came from, plan approval, and
-   each seat's resolved model on this platform. Check every resolved model
-   against what your platform's dispatch accepts right now — its model
-   options or spawn allowlist. One it doesn't accept stops the run: name the
-   seat, the value, and where it came from. That includes an exact name from
-   another platform, and a tier with no column for this platform.
+   the preset, if there is one. Then print one table of the six agents: each
+   one's provider, model, and source — run, Seats, Agents, Preset, or
+   fallback. List under an agent any of its seats that resolved differently.
+   Mark Implementers "not used at this effort" at `low`, Task reviewers
+   "final review only" at `low`, and PR code reviewer "not used at this
+   effort" below `high`, rather than
+   leaving them out.
+
+   Check every resolved model against what its provider accepts right now —
+   for your platform, its dispatch's model options or spawn allowlist. One it
+   doesn't accept stops the run: name the agent, the seat, the value, and
+   where it came from. That includes an exact name from another platform,
+   and a tier with no column for its provider.
+
+   **When the Review agent resolves to `codex:`,** check Codex before
+   dispatching anything: `codex --version` succeeds; `codex login status`
+   exits 0; `review-prs` is installed for Codex — in the repository's
+   `.agents/skills/`, in `~/.agents/skills/`, or in `$CODEX_HOME/skills/`
+   (default `~/.codex/skills/`); at high effort, when the code pass runs,
+   Superpowers' `requesting-code-review` is installed for Codex the same way
+   and Codex's multi-agent feature is on (`codex features`), so the code pass
+   can run on its own model; and each distinct Codex model the review
+   resolves to answers, with exit 0:
+
+   ```bash
+   codex exec --ephemeral -s read-only -m "<model>" "Reply with the single word OK."
+   ```
+
+   Any failure stops the run: name the agent, the value, and where it came
+   from. A run with no Codex reviewer checks none of this. Run every check
+   in this step — the Codex ones too — again on the final table, after the
+   questions and overrides below and just before the user confirms, so an
+   answer that turns Codex on is checked before any agent starts.
 
    Ask for what the file doesn't settle: the effort, when the run had no
-   argument; plan approval, when the file has no line for it; the
-   implementer's model, when the file doesn't set it — offering the models
-   your dispatch accepts, never a name remembered from elsewhere. If your
-   platform can't set a model per dispatch, say so and use its default for
-   every seat. Then ask whether to use these settings for the run, or
-   override any of them for this run only.
+   argument; plan approval, when the file has no line for it; and the
+   models. With no `docs/agents/delivery.md`, say once that the optional
+   `setup-delivery` skill saves these settings ahead of time, then ask the
+   preset first —
+   `budget`, `balanced`, `max`, or "set each agent", which asks all six
+   agents in one question. With a file that leaves the implementer unset,
+   ask for it as before; that answer
+   sets the implementer seat, not the Implementers agent, and doesn't
+   trigger the escalation step-up. When a value resolves through a tier and
+   there is no Tiers column for its provider — always the case with no
+   file — ask for that provider's cheap, standard and strong models in one
+   question, and include them in the save offer. Offer only the models your dispatch accepts, never a
+   name remembered from elsewhere. If your platform can't set a model per
+   dispatch, say so and use its default for every seat. Then ask whether to
+   use these settings for the run, or override any of them for this run
+   only.
+
+   **Overrides in words.** A run override from the request maps to agents by
+   this vocabulary only: "plans" → Planner; "builds" or "executes" →
+   Implementers; "leads the build" → Build lead; "reviews tasks" → Task
+   reviewers; "reviews" or "reviews the PR" → Review agent; "reviews the
+   code" → PR code reviewer. Print the agents table with "run" as the
+   source of each overridden row; the run starts only after the user confirms
+   the printed table.
 
    When anything was asked, offer to save it to `docs/agents/delivery.md`:
    show the file's diff, and write it only on the user's yes. A run's
@@ -256,11 +362,46 @@ build lead — to run `review-prs #<number>` on `<owner/repo>`, telling it:
 
 - the user's go-ahead for this run covers posting the review;
 - below high effort, the code pass is off, because the build's whole-branch
-  review already covered the code.
+  review already covered the code;
+- at high effort, the code pass's model: the PR code reviewer's resolved
+  model, which comes first in `review-prs`' own order.
 
 It posts its findings as comments on the pull request and reports the
 review's URL. A review changes nothing locally, so it can run while other
 issues build.
+
+**When the Review agent is on Codex,** run the review yourself through the
+Codex CLI instead of dispatching an agent:
+
+1. Gather the context into
+   `<worktree git dir>/implement-issues/review-<number>/`: `pr.json` from
+   `gh pr view <number> --json number,url,title,body,baseRefName,headRefOid`,
+   `comments.json` from
+   `gh api --paginate repos/<owner>/<repo>/pulls/<number>/comments`, and
+   `issue.md` with the linked intent issue's body, read with the tracker's
+   Reading method — left out when the pull request links none. In the
+   worktree, run `git fetch origin <base> pull/<number>/head`.
+2. Fill in `assets/review-brief.md` as `brief.md` in that directory, with
+   the code pass off below high effort and the PR code reviewer's resolved
+   Codex model. Run, in the background:
+
+   ```bash
+   codex exec -C "<worktree>" -m "<Review agent's resolved Codex model>" -s read-only --json \
+     -o "<context dir>/report.md" - < "<context dir>/brief.md"
+   ```
+
+3. When it exits, `report.md` must hold exactly one fenced `json` block.
+   Write it to `review.json` in the same directory, set its `"event": "COMMENT"`
+   whatever it says, and check that its `commit_id` is `pr.json`'s `headRefOid`
+   — a different commit posts nothing. Then post it:
+   `gh api --method POST repos/<owner>/<repo>/pulls/<number>/reviews --input <context dir>/review.json`.
+   Read the review's URL from the response.
+4. No block, more than one, a non-zero exit, or a failed post: post
+   nothing, leave the pull request a draft, and record why.
+
+Read Codex's token counts from its `--json` events for the report when they
+include them. Everything after the review is the same as for any review
+agent.
 
 No review posted: leave the pull request a draft and record why. A review
 with no findings: go to Stage 8, step 3.
@@ -296,8 +437,9 @@ One table: issue, branch, pull request URL or the reason there is none,
 state (waiting on plan approval, ready, or draft and why), checks result
 locally and in CI, review findings by severity with how many were fixed, and
 how many decisions the agents made. Above it, the run's effort and plan
-approval; under it, the model each seat ran on, with token use or time per
-agent where your platform reports them. Then list every issue waiting or
+approval and the preset; under it, each agent with its provider and the
+model each of its seats ran on, with token use or time per agent where the
+provider reports them. Then list every issue waiting or
 skipped in Stage 1, and why.
 
 A pull request with the partial reference leaves its issue open when it
@@ -315,6 +457,12 @@ the user the tracker's Close-by-hand step to run once it merges.
 
 - Don't merge, enable auto-merge, or approve a pull request — marking it
   ready hands it to the user, who accepts the work.
+- Don't let a Codex agent write — run it only with `-s read-only`, and post
+  its review yourself. Don't post a Codex review unless its reply holds
+  exactly one fenced `json` block.
+- Don't read a run override's wording any other way than Stage 2's
+  vocabulary, and don't start before the user confirms the printed agents
+  table.
 - Don't push the base branch, and never force-push.
 - Don't take an agent's report as proof — run the checks yourself before the
   first push, at every effort.
