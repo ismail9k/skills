@@ -54,6 +54,8 @@ Use your platform's equivalents.
   one is missing, name it and stop.
 - A GitHub repository and `gh`, with `gh auth status` passing — pull requests
   and their reviews live there, wherever the issues live.
+- When the Review agent uses Codex: the Codex CLI, logged in, with
+  `review-prs` installed for Codex.
 
 ## Settings
 
@@ -133,6 +135,14 @@ the saved ones; its shape is `assets/delivery.md`.
   or `by-task`, or no Implementers value is set, escalation follows
   `subagent-driven-development`'s own rule.
 
+  **Codex as a reviewer.** Only the Review agent may name `codex:`. Codex
+  reads and reports; it never writes, and you post its review (Stage 7). The
+  PR code reviewer runs inside the review, so it follows the Review agent's
+  provider. Any other agent that names `codex:` stops the run in Stage 2:
+  Codex is for reviews only. A model the parent's provider doesn't accept
+  stops the run too — a Claude model on the PR code reviewer under a Codex
+  review agent, for example.
+
   **Fallback.** A seat nothing above names falls back:
 
   | Seat | When not set |
@@ -187,6 +197,20 @@ Ask before dispatching anything.
    doesn't accept stops the run: name the agent, the seat, the value, and
    where it came from. That includes an exact name from another platform,
    and a tier with no column for its provider.
+
+   **When the Review agent resolves to `codex:`,** check Codex before
+   dispatching anything: `codex --version` succeeds; `codex login status`
+   exits 0; `review-prs` is installed for Codex — in the repository's
+   `.agents/skills/`, in `~/.agents/skills/`, or in `$CODEX_HOME/skills/`
+   (default `~/.codex/skills/`); and each distinct Codex model the review
+   resolves to answers, with exit 0:
+
+   ```bash
+   codex exec --ephemeral -s read-only -m "<model>" "Reply with the single word OK."
+   ```
+
+   Any failure stops the run: name the agent, the value, and where it came
+   from. A run with no Codex reviewer checks none of this.
 
    Ask for what the file doesn't settle: the effort, when the run had no
    argument; plan approval, when the file has no line for it; and the
@@ -330,6 +354,37 @@ It posts its findings as comments on the pull request and reports the
 review's URL. A review changes nothing locally, so it can run while other
 issues build.
 
+**When the Review agent is on Codex,** run the review yourself through the
+Codex CLI instead of dispatching an agent:
+
+1. Gather the context into
+   `<worktree git dir>/implement-issues/review-<number>/`: `pr.json` from
+   `gh pr view <number> --json number,url,title,body,baseRefName,headRefOid`,
+   `comments.json` from
+   `gh api --paginate repos/<owner>/<repo>/pulls/<number>/comments`, and
+   `issue.md` with the linked intent issue's body, read with the tracker's
+   Reading method — left out when the pull request links none. In the
+   worktree, run `git fetch origin <base> pull/<number>/head`.
+2. Fill in `assets/review-brief.md` as `brief.md` in that directory, with
+   the code pass off below high effort and the PR code reviewer's resolved
+   Codex model. Run, in the background:
+
+   ```bash
+   codex exec -C "<worktree>" -m "<model>" -s read-only --json \
+     -o "<context dir>/report.md" - < "<context dir>/brief.md"
+   ```
+
+3. When it exits, `report.md` must hold exactly one fenced `json` block.
+   Write it to `review.json` in the same directory and post it:
+   `gh api --method POST repos/<owner>/<repo>/pulls/<number>/reviews --input <context dir>/review.json`.
+   Read the review's URL from the response.
+4. No block, more than one, a non-zero exit, or a failed post: post
+   nothing, leave the pull request a draft, and record why.
+
+Read Codex's token counts from its `--json` events for the report when they
+include them. Everything after the review is the same as for any review
+agent.
+
 No review posted: leave the pull request a draft and record why. A review
 with no findings: go to Stage 8, step 3.
 
@@ -384,6 +439,9 @@ the user the tracker's Close-by-hand step to run once it merges.
 
 - Don't merge, enable auto-merge, or approve a pull request — marking it
   ready hands it to the user, who accepts the work.
+- Don't let a Codex agent write — run it only with `-s read-only`, and post
+  its review yourself. Don't post a Codex review unless its reply holds
+  exactly one fenced `json` block.
 - Don't read a run override's wording any other way than Stage 2's
   vocabulary, and don't start before the user confirms the printed agents
   table.

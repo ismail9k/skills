@@ -92,6 +92,14 @@ case "$s9" in *provider*) ok "Stage 9 reports each provider" ;; *) bad "Stage 9 
 RP=skills/review-prs/SKILL.md
 for s in "## Report-only mode" "Context:" "pr.json" "comments.json" "issue.md" "exactly one fenced" "don't call gh" "PR code reviewer" "Preset"; do has "$RP" "$s"; done
 
+RB=$II/assets/review-brief.md
+if [ -f "$RB" ]; then
+  for s in "Report-only: yes" "Context:" "<owner/repo>" "<number>" "<worktree>" "<context dir>" "<code pass: on|off>" "<PR code reviewer model>"; do has "$RB" "$s"; done
+else bad "$RB does not exist"; fi
+for s in "codex exec" "-s read-only" "codex login status" "Codex is for reviews only" "doesn't accept stops the run" "exactly one fenced"; do has "$II/SKILL.md" "$s"; done
+stray=$(awk '/^## /{st=$0} /codex exec/ && st !~ /^## Stage [27] /{print FILENAME": "st}' "$II/SKILL.md" | sort -u)
+if [ -n "$stray" ]; then bad "codex exec outside Stages 2 and 7: $stray"; else ok "codex exec only in Stages 2 and 7"; fi
+
 # ------------------------------- 4. anti-koshary patterns vs a known-hit fixture
 head_ "anti-koshary security patterns match planted hits"
 REF=skills/anti-koshary/references/security-checks.md
