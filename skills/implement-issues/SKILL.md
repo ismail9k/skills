@@ -79,18 +79,68 @@ the saved ones; its shape is `assets/delivery.md`.
 
 - **Plan approval** — on or off; off when the file doesn't say.
 
-- **Models**, one per seat. Each value is a tier (`cheap`, `standard`,
-  `strong`) looked up in the file's Tiers table for this platform, `session`,
-  an exact model name, or — for the implementer — `by-task`, which leaves the
-  choice to `subagent-driven-development`'s own rules. A seat the file leaves
-  out falls back:
+- **Models**, one per agent. Six agents work on an issue, and each sets the
+  model of one or more seats:
 
-  | Seat | Dispatched by | When not set |
+  | Agent | Seats | Dispatched by |
   | --- | --- | --- |
-  | planner, build-lead, pr-reviewer | you | session model |
-  | implementer | Superpowers | asked in Stage 2 |
-  | spec-check, task-reviewer, re-reviewer, escalation, final-reviewer | Superpowers | that skill's own rule |
-  | pr-code-reviewer | `review-prs` | that skill's own rule |
+  | Planner | planner, spec-check | you |
+  | Build lead | build-lead | you |
+  | Implementers | implementer, escalation | Superpowers, inside the build lead |
+  | Task reviewers | task-reviewer, re-reviewer, final-reviewer | Superpowers, inside the build lead |
+  | Review agent | pr-reviewer | you |
+  | PR code reviewer | pr-code-reviewer | `review-prs`, inside the review agent |
+
+  Your session is the dispatcher; it has no setting.
+
+  **Values.** Each value is a tier (`cheap`, `standard`, `strong`) looked up
+  in the file's Tiers table, `session`, an exact model name, or — for
+  Implementers — `by-task`, which leaves the choice to
+  `subagent-driven-development`'s own rules. Review agent may also take
+  `codex:` and a tier or a Codex model; see Codex as a reviewer, below.
+
+  **Presets.** One word sets every agent left unset. Presets are tiers:
+
+  | Agent | budget | balanced | max |
+  | --- | --- | --- | --- |
+  | Planner | strong | strong | strong |
+  | Build lead | standard | standard | strong |
+  | Implementers | cheap | standard | strong |
+  | Task reviewers | standard | standard | strong |
+  | Review agent | standard | standard | strong |
+  | PR code reviewer | standard | strong | strong |
+
+  **Precedence.** For each seat, the first of these that names it wins:
+
+  1. a run override — from the request or from Stage 2;
+  2. the seat's row in the file's Seats table;
+  3. its agent's row in the Agents table;
+  4. the Preset;
+  5. the fallback below.
+
+  A value resolves whole: provider and model come from the same level, never
+  a provider from one and a model from another. A value with no `codex:`
+  prefix runs on the provider of whoever dispatches that agent — your session
+  for the Planner, Build lead and Review agent; the build lead's provider for
+  Implementers and Task reviewers; the review agent's for the PR code
+  reviewer. A tier resolves in that provider's Tiers column.
+
+  **Escalation.** Fix rounds 4–5 exist because an implementer got stuck.
+  When the Implementers value came from a run override, the Agents row or
+  the Preset, and the escalation seat isn't set on its own, escalation runs
+  one tier above it on the same provider: `cheap` → `standard`, `standard`
+  → `strong`, `strong` stays. When that value is an exact model, `session`
+  or `by-task`, or no Implementers value is set, escalation follows
+  `subagent-driven-development`'s own rule.
+
+  **Fallback.** A seat nothing above names falls back:
+
+  | Seat | When not set |
+  | --- | --- |
+  | planner, build-lead, pr-reviewer | session model |
+  | implementer | asked in Stage 2 |
+  | spec-check, task-reviewer, re-reviewer, escalation, final-reviewer | that skill's own rule |
+  | pr-code-reviewer | that skill's own rule |
 
 ## Stage 1 — Build the queue
 

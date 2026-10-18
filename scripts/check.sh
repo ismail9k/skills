@@ -7,6 +7,7 @@
 #      plugin, and no plugin.json declares skills that would conflict with it
 #   3. no skill references another by path (each is installed alone)
 #   4. anti-koshary's grep patterns still match a file with a known hit
+#   5. implement-issues' agents, presets and Codex path agree across its files
 #
 # (4) is the one that matters most: a broken regex looks exactly like a clean
 # repo, so the patterns are run against a fixture with planted hits, plus
@@ -61,6 +62,28 @@ for d in skills/*/; do
   if [ -n "$hits" ]; then bad "$b references another skill by path:"; printf '%s\n' "$hits" | sed 's/^/          /'
   else ok "$b"; fi
 done
+
+# ------------------------------- 5. implement-issues settings stay consistent
+head_ "implement-issues settings stay consistent"
+II=skills/implement-issues
+AGENTS_6="Planner|Build lead|Implementers|Task reviewers|Review agent|PR code reviewer"
+has() { # file, fixed string
+  if grep -qF -- "$2" "$1" 2>/dev/null; then ok "$1 has: $2"; else bad "$1 is missing: $2"; fi
+}
+models=$(grep -rniE '(^|[^[:alnum:]])(opus|sonnet|haiku|fable|gpt-?[0-9])' \
+  skills/implement-issues skills/review-prs README.md AGENTS.md docs/implement-issues-flow.md 2>/dev/null)
+if [ -n "$models" ]; then bad "a model name in skill or doc text:"; printf '%s\n' "$models" | sed 's/^/          /'
+else ok "no model names in implement-issues, review-prs or their docs"; fi
+heads=$(sed -n 's/^## //p' "$II/assets/delivery.md" | tr '\n' '|')
+if [ "$heads" = "Effort|Plan approval|Preset|Agents|Tiers|Seats|" ]; then ok "delivery.md sections in order"
+else bad "delivery.md sections are '$heads'"; fi
+IFS='|'; for a in $AGENTS_6; do
+  grep -q "^| $a |" "$II/assets/delivery.md" && ok "delivery.md row: $a" || bad "delivery.md has no row: $a"
+done; unset IFS
+pt=$(awk '/^ *\| Agent \| budget \| balanced \| max \|$/{f=1;next} f&&/^ *\|/{print} f&&!/^ *\|/{exit}' "$II/SKILL.md" \
+  | sed 's/^ *| \([^|]*\) |.*/\1/' | grep -v -- '---' | tr '\n' '|')
+if [ "$pt|" = "$AGENTS_6||" ] || [ "$pt" = "$AGENTS_6|" ]; then ok "SKILL.md preset table has the six agents"
+else bad "SKILL.md preset table rows are '$pt'"; fi
 
 # ------------------------------- 4. anti-koshary patterns vs a known-hit fixture
 head_ "anti-koshary security patterns match planted hits"
