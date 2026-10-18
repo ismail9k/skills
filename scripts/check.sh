@@ -100,6 +100,20 @@ for s in "codex exec" "-s read-only" "codex login status" "Codex is for reviews 
 stray=$(awk '/^## /{st=$0} /codex exec/ && st !~ /^## Stage [27] /{print FILENAME": "st}' "$II/SKILL.md" | sort -u)
 if [ -n "$stray" ]; then bad "codex exec outside Stages 2 and 7: $stray"; else ok "codex exec only in Stages 2 and 7"; fi
 
+FLOW=docs/implement-issues-flow.md
+IFS='|'; for a in $AGENTS_6; do has "$FLOW" "$a"; has README.md "$a"; done; unset IFS
+grep -q "participant .* as Implementers" "$FLOW" && ok "flow map has an Implementers participant" || bad "flow map has no Implementers participant"
+grep -q "participant .* as Task reviewers" "$FLOW" && ok "flow map has a Task reviewers participant" || bad "flow map has no Task reviewers participant"
+grep -q "participant .* as Superpowers subagents" "$FLOW" && bad "flow map still has a Superpowers subagents participant" || ok "flow map has no Superpowers subagents participant"
+for s in budget balanced max Codex; do has README.md "$s"; done
+has AGENTS.md "review-brief.md"
+
+# the final-reviewer seat (Task reviewers) runs at every effort, so low may not mark Task reviewers unused
+grep -q "Implementers and Task reviewers \"not used at this effort\"" "$II/SKILL.md" \
+  && bad "SKILL.md marks Task reviewers unused at low, but the final review runs at every effort" \
+  || ok "Task reviewers stay in use at low (final review)"
+has "$II/SKILL.md" "final review only"
+
 # ------------------------------- 4. anti-koshary patterns vs a known-hit fixture
 head_ "anti-koshary security patterns match planted hits"
 REF=skills/anti-koshary/references/security-checks.md

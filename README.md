@@ -110,6 +110,10 @@ Builds a batch of open issues, one pull request each. Start it with an effort le
 
 It gets the queue from `fetch-issues`, then settles its settings: the effort, whether you approve plans first, and which model does each job — a cheap one for implementation and a strong one for review, say, chosen from the models your agent actually offers. It saves your answers to `docs/agents/delivery.md`, after showing you the change, so the next run asks only for what's missing. Then it asks whether to build the issues one at a time or several in parallel.
 
+Models are set per agent — six of them work on an issue: the **Planner**, the **Build lead**, the **Implementers**, the **Task reviewers**, the **Review agent**, and the **PR code reviewer** inside the review. Pick one preset to set them all — `budget` (strong plans, cheap implementers), `balanced`, or `max` — then override any agent you like, or say it up front: "the strong model plans, the cheap one builds". The run prints the six agents with their models and starts only once you confirm.
+
+The Review agent can also run on Codex, on the same machine, so a different model family reviews what Claude built: set it to `codex:` and a tier or a Codex model. Codex runs read-only — it reads the pull request and returns its review, and the dispatcher posts it.
+
 Each issue gets its own worktree and branch (`feat/42-…`) and two agents. A planner seeds Superpowers' brainstorming from the issue through the bridge and writes the spec and plan. A build lead executes the plan with Superpowers — inline at low effort, task by task otherwise. Nobody is there to answer their questions, so they answer them from the issue and record every decision.
 
 With plan approval on, each issue stops after its spec and plan and opens a draft plan pull request. Comment on its lines and the next run revises them; add the `plan-approved` label and the next run builds on the same branch, turning that pull request into the built one. The dispatcher re-runs the checks itself, then opens a draft pull request with `Closes #42` — or `Relates to #42`, naming what's left, when the work is partial — and the agent's decisions listed in the body. Steps nothing in the repository can do, like provisioning a service or checking a page by hand, are listed as follow-ups and don't make the work partial. At the end it asks whether each partial pull request fully resolves its issue anyway, and switches it to `Closes #42`, or your tracker's own closing syntax, if you say yes. If your tracker has nothing a pull request can write to close an issue, it tells you which issues to close by hand once their pull requests merge.
@@ -209,7 +213,7 @@ What to install depends on which skills you use. Every skill assumes `git`.
 | `brainstorm-to-issue` | `gh` for a GitHub tracker, or your tracker's own tool |
 | `superpowers-issue-bridge` | Superpowers; `gh` for a GitHub tracker |
 | `fetch-issues` | `gh` for a GitHub tracker, or your tracker's own tool |
-| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues`, `superpowers-issue-bridge`, `review-prs`, and `answer-pr-reviews` skills installed alongside it |
+| `implement-issues` | Superpowers, `gh`, an agent with subagents, and the `fetch-issues`, `superpowers-issue-bridge`, `review-prs`, and `answer-pr-reviews` skills installed alongside it; the Codex CLI, logged in and with `review-prs` installed for Codex, when the Review agent uses Codex |
 | `review-prs` | Superpowers and `gh`; subagents optional — without them it reviews inline |
 | `answer-pr-reviews` | Superpowers and `gh` |
 | `anti-koshary` | Nothing required; optional audit tools make its dependency scan complete |

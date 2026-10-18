@@ -26,8 +26,11 @@ this file too.
   Stage 2 when the file has no line for it. When on, each issue's spec and
   plan wait on a draft plan PR until the user adds the `plan-approved` label,
   and a later run builds them.
-- **Models** — one per seat, from the Seats table in
-  `docs/agents/delivery.md`. A seat the file leaves out falls back; see
+- **Models** — one per agent: Planner, Build lead, Implementers, Task
+  reviewers, Review agent and PR code reviewer, from the Agents table in
+  `docs/agents/delivery.md`, or all six at once from a preset — `budget`,
+  `balanced` or `max`. A Seats row still overrides one seat inside its agent.
+  The Review agent alone may run on a local Codex, read-only. See
   [Every model seat](#every-model-seat).
 
 `implement-issues` asks for what the file doesn't settle and offers to save
@@ -67,7 +70,8 @@ sequenceDiagram
     participant D as Dispatcher<br/>session model
     participant P as Planner<br/>planner seat
     participant B as Build lead<br/>build-lead seat
-    participant S as Superpowers subagents<br/>their own seats
+    participant I as Implementers<br/>implementer, escalation seats
+    participant T as Task reviewers<br/>task-reviewer, re-reviewer,<br/>final-reviewer seats
     participant R as Review agent<br/>pr-reviewer seat
     participant C as PR code reviewer<br/>pr-code-reviewer seat
     participant GH as GitHub
@@ -80,12 +84,11 @@ sequenceDiagram
     D->>D: Ask what the file doesn't settle, offer to save it. Sequential or parallel
     end
 
-    Note over D,S: Stage 3 · Plan
+    Note over D,T: Stage 3 · Plan
     D->>P: planner-brief.md with the full issue body
     P->>P: Bridge seeds brainstorming. It answers its own questions and sizes the work
     opt Brainstorming writes a spec, for a project
-        P->>S: Builder check on the spec-check seat
-        S-->>P: Open questions on the spec
+        P->>P: Builder check on the spec-check seat, part of the Planner agent
     end
     P->>P: writing-plans, carrying the Intent-Issue line
     P-->>D: Report: spec and plan committed, decisions
@@ -107,17 +110,18 @@ sequenceDiagram
     end
 
     rect rgba(128, 128, 128, 0.10)
-    Note over D,S: Stage 4 · Build
+    Note over D,T: Stage 4 · Build
     D->>B: build-brief.md: spec, plan, effort, five Superpowers seat models
     alt Low effort
         B->>B: executing-plans: builds every task itself, test-first
     else Medium or high effort
         loop Each of the plan's N tasks, see the per-task loop
-            B->>S: Implementer, task reviewer, fix rounds up to 2 or 5
-            S-->>B: Task complete, rulings, deferred minor findings
+            B->>I: Implementer for the task; escalation for fix rounds 4–5
+            B->>T: Task review and re-review, fix rounds up to 2 or 5
+            T-->>B: Task complete, rulings, deferred minor findings
         end
     end
-    B->>S: Whole-branch review on the final-reviewer seat
+    B->>T: Whole-branch review on the final-reviewer seat
     opt Final review has findings
         B->>B: One fix pass. Under SDD, one fix dispatch and one scoped re-review
     end
@@ -249,6 +253,10 @@ user adds it.
    - An approved plan PR becomes the issue's PR: new commits, new title and
      body, still a draft. Otherwise a new draft from `pr-body.md`.
 7. **Review the PR** — a new review agent on the pr-reviewer seat.
+   - When the Review agent is on Codex, the dispatcher gathers the PR, its
+     comments and the issue into files, runs `review-prs` in report-only
+     mode through `codex exec -s read-only`, and posts the one review it
+     returns. Codex never writes.
    - Runs `review-prs`: the intent pass at every effort. The code pass, on
      the pr-code-reviewer seat, only at high; below high the review body says
      it was skipped because the build's whole-branch review covered the code.
@@ -350,6 +358,14 @@ dispatcher runs the full checks before the first push, the review is answered
 once by the build lead, and nothing merges.
 
 ## Every model seat
+
+Most users set the six agents, or a preset, rather than seats: each agent
+sets the seats grouped under it — Planner (planner, spec-check), Build lead
+(build-lead), Implementers (implementer, escalation), Task reviewers
+(task-reviewer, re-reviewer, final-reviewer), Review agent (pr-reviewer) and
+PR code reviewer (pr-code-reviewer). A seat resolves from a run override,
+then its Seats row, then its agent's row, then the preset, then the fallback
+in the last column below.
 
 These are the ten seats in `docs/agents/delivery.md`. Each value is a tier
 (`cheap`, `standard`, `strong`, looked up in the file's Tiers table for the

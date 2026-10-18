@@ -188,8 +188,9 @@ Ask before dispatching anything.
    the preset, if there is one. Then print one table of the six agents: each
    one's provider, model, and source — run, Seats, Agents, Preset, or
    fallback. List under an agent any of its seats that resolved differently.
-   Mark Implementers and Task reviewers "not used at this effort" at `low`,
-   and PR code reviewer "not used at this effort" below `high`, rather than
+   Mark Implementers "not used at this effort" at `low`, Task reviewers
+   "final review only" at `low`, and PR code reviewer "not used at this
+   effort" below `high`, rather than
    leaving them out.
 
    Check every resolved model against what its provider accepts right now —

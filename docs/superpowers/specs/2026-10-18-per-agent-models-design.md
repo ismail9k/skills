@@ -101,8 +101,9 @@ step up from — an exact model name, `session` or `by-task` — or when no
 Implementers value is set at all, escalation falls back to SDD's own rule,
 as today. The settings printout shows which applied.
 
-**Unused agents.** At `low` effort there are no implementers or task
-reviewers, and below `high` there is no PR code reviewer. The settings
+**Unused agents.** At `low` effort there are no implementers, and Task
+reviewers do only the final whole-branch review; below `high` there is no PR
+code reviewer. The settings
 printout shows those agents as "not used at this effort" instead of hiding
 them, so a user who set "Haiku builds" with `low` sees that it won't apply.
 
