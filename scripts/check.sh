@@ -89,6 +89,9 @@ for s in "not used at this effort" "set each agent" '"builds" or "executes"' "th
 s9=$(awk '/^## Stage 9/{f=1;next} /^## /{f=0} f' "$II/SKILL.md")
 case "$s9" in *provider*) ok "Stage 9 reports each provider" ;; *) bad "Stage 9 doesn't mention the provider" ;; esac
 
+RP=skills/review-prs/SKILL.md
+for s in "## Report-only mode" "Context:" "pr.json" "comments.json" "issue.md" "exactly one fenced" "don't call gh" "PR code reviewer" "Preset"; do has "$RP" "$s"; done
+
 # ------------------------------- 4. anti-koshary patterns vs a known-hit fixture
 head_ "anti-koshary security patterns match planted hits"
 REF=skills/anti-koshary/references/security-checks.md

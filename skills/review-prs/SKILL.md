@@ -22,7 +22,30 @@ or local markdown.
 This skill names actions — "dispatch a reviewer" — not tools. Use your
 platform's equivalents.
 
+## Report-only mode
+
+A caller that can't let its reviewer write — `implement-issues` running the
+review on a read-only Codex — dispatches this skill with `Report-only: yes`
+and a `Context:` directory. Only then does this mode apply. The directory
+holds:
+
+- `pr.json` — the output of
+  `gh pr view <number> --json number,url,title,body,baseRefName,headRefOid`;
+- `comments.json` — the review comments already on the pull request;
+- `issue.md` — the linked intent issue's body, absent when there is none.
+
+The pull request's commits and its base branch are already fetched into the
+checkout. In this mode, don't call gh, don't write a file, and don't change
+the checkout: read the context directory and the checkout, review exactly as
+Stage 3 says, and end your reply with exactly one fenced `json` block holding
+the review Stage 4 would have posted — the same `commit_id`, `event`, `body`
+and `comments`. After it, list the findings dropped in the check step, and
+why. The caller posts the review.
+
 ## Stage 1 — Pick the pull requests
+
+In report-only mode, skip this stage: the pull request is the one in
+`pr.json`, and the caller has the go-ahead to post.
 
 1. Confirm `gh` is installed and `gh auth status` passes; otherwise say why
    and stop.
@@ -38,6 +61,11 @@ platform's equivalents.
    continue.
 
 ## Stage 2 — Gather each pull request's context
+
+In report-only mode, take the title, body, base and head commit from
+`pr.json`, the intent issue from `issue.md`, and the existing comments from
+`comments.json`. Set `HEAD_SHA` from `pr.json` and `BASE_SHA` to
+`git merge-base origin/<base> <HEAD_SHA>`. Then go to Stage 3.
 
 1. `gh pr view <number> --json title,body,baseRefName,headRefOid` gives the
    description and the head commit. Fetch the commits so they can be
@@ -64,10 +92,12 @@ Constraint the diff breaks.
 dispatch its code reviewer with the pull request's title and description as
 the description, the intent issue — or the pull request's body, when there is
 none — as the requirements, and `BASE_SHA` and `HEAD_SHA`. Dispatch it on the
-most capable model your platform offers — unless `docs/agents/delivery.md`
-exists and its `pr-code-reviewer` seat resolves to a model your platform's
-dispatch accepts: a tier looked up in its Tiers table for this platform, or
-an exact name. Use that model instead. When the seat is missing or doesn't
+first model of these that your platform's dispatch accepts: the one your
+dispatch named, as `implement-issues` does; else, from
+`docs/agents/delivery.md` when it exists, the `pr-code-reviewer` Seats row,
+then the `PR code reviewer` Agents row, then the Preset's PR code reviewer
+tier — a tier looked up in its Tiers table for this platform; else the most
+capable model your platform offers. When the file names a model that doesn't
 resolve, use the most capable model and say so in the report; never stop
 over it. Reviews change nothing, so dispatch the reviewers for several pull
 requests at the same time. Without subagent support, review each diff
@@ -84,6 +114,9 @@ on someone's pull request costs them more than a missing one. Drop what
 doesn't hold up, and note why for the report.
 
 ## Stage 4 — Comment with suggested changes
+
+In report-only mode, build the review below but don't post it: return it as
+the fenced `json` block that Report-only mode describes.
 
 Post one review per pull request, as `event: "COMMENT"`.
 
@@ -136,11 +169,16 @@ comments.
 
 ## Stage 5 — Report
 
+In report-only mode, the report is the dropped findings after the `json`
+block, and nothing else.
+
 One table: pull request, linked issue, findings posted by severity, and the
 review's URL. Then list the findings dropped in the check step, and why.
 
 ## What NOT to do
 
+- Don't call gh, write a file, or post anything in report-only mode — the
+  caller posts.
 - Don't approve or request changes — post reviews as `COMMENT` only;
   approval is the user's.
 - Don't push commits to a pull request's branch; suggestions are the
