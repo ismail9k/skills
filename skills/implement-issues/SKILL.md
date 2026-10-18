@@ -221,7 +221,9 @@ Ask before dispatching anything.
 
    Ask for what the file doesn't settle: the effort, when the run had no
    argument; plan approval, when the file has no line for it; and the
-   models. With no `docs/agents/delivery.md`, ask the preset first —
+   models. With no `docs/agents/delivery.md`, say once that the optional
+   `setup-delivery` skill saves these settings ahead of time, then ask the
+   preset first —
    `budget`, `balanced`, `max`, or "set each agent", which asks all six
    agents in one question. With a file that leaves the implementer unset,
    ask for it as before; that answer

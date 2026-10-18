@@ -34,7 +34,8 @@ this file too.
   [Every model seat](#every-model-seat).
 
 `implement-issues` asks for what the file doesn't settle and offers to save
-the answers, showing the diff first. There is no separate setup skill.
+the answers, showing the diff first. The optional `setup-delivery` skill
+writes the same file ahead of time, for anyone who'd rather decide once.
 
 ## At a glance
 

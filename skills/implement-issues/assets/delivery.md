@@ -1,6 +1,6 @@
 # Delivery settings
 
-<!-- Read by: implement-issues, review-prs. Written by: implement-issues, when the user saves a run's settings -->
+<!-- Read by: implement-issues, review-prs. Written by: setup-delivery, or implement-issues when the user saves a run's settings -->
 
 ## Effort
 <low, medium, or high — used when a run is started without one>

@@ -119,6 +119,17 @@ for s in "ask for that provider's cheap, standard and strong models" "again on t
 for s in "the model the code pass ran on" 'a preset sets the PR code reviewer to `standard` for budget and `strong` for balanced and max'; do has "$RP" "$s"; done
 grep -q "^  | PR code reviewer | standard | strong | strong |$" "$II/SKILL.md" && ok "preset PR code reviewer row matches review-prs' inline line" || bad "preset PR code reviewer row changed — update review-prs' inline line too"
 
+# setup-delivery carries its own copies (skills install alone), so pin them to implement-issues'
+SD=skills/setup-delivery
+if [ -f "$SD/SKILL.md" ]; then
+  cmp -s "$SD/assets/delivery.md" "$II/assets/delivery.md" && ok "setup-delivery's delivery.md template matches implement-issues'" || bad "setup-delivery's delivery.md template differs from implement-issues'"
+  presets() { awk '/^ *\| Agent \| budget \| balanced \| max \|$/{f=1;next} f&&/^ *\|/{print} f&&!/^ *\|/{exit}' "$1" | sed 's/^ *//'; }
+  [ "$(presets "$SD/SKILL.md")" = "$(presets "$II/SKILL.md")" ] && [ -n "$(presets "$SD/SKILL.md")" ] && ok "setup-delivery's preset table matches implement-issues'" || bad "setup-delivery's preset table differs from implement-issues'"
+  IFS='|'; for a in $AGENTS_6; do has "$SD/SKILL.md" "$a"; done; unset IFS
+  for s in "codex login status" "Show the diff" "Re-running"; do has "$SD/SKILL.md" "$s"; done
+else bad "$SD/SKILL.md does not exist"; fi
+for f in "$II/SKILL.md" README.md AGENTS.md; do has "$f" "setup-delivery"; done
+
 # ------------------------------- 4. anti-koshary patterns vs a known-hit fixture
 head_ "anti-koshary security patterns match planted hits"
 REF=skills/anti-koshary/references/security-checks.md

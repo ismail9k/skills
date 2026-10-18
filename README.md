@@ -9,6 +9,7 @@ The problem this solves: brainstorming happens in chat, gets summarized into an 
 ```
 setup-agent-md            (optional, once per repo)
 setup-issue-tracker       (once per repo: GitHub, Jira, local markdown, …)
+setup-delivery            (optional, once per repo: effort, plan approval, models)
 
 Superpowers brainstorming
         │   problem understood — superpowers-issue-bridge asks:
@@ -97,6 +98,10 @@ A read-only utility: lists the open issues in your tracker with their complete b
 ## Building and reviewing with agents
 
 These skills work in Claude Code, Codex, and other agents; `implement-issues` needs one that can dispatch subagents.
+
+### `setup-delivery`
+
+Optional. Saves `implement-issues`' settings once per repo in `docs/agents/delivery.md`, so its runs stop asking: the default effort, plan approval, a preset or a model for each agent, the models behind each tier, and whether Codex reviews. If the Review agent uses Codex, it checks Codex right away — installed, logged in, `review-prs` available — so a broken setup shows here rather than mid-run. It shows the diff before writing and only writes what you settled. Skip it and `implement-issues` asks for the same things on each run, and offers to save your answers.
 
 ### `implement-issues`
 
@@ -210,6 +215,7 @@ What to install depends on which skills you use. Every skill assumes `git`.
 | --- | --- |
 | `setup-agent-md` | Nothing else |
 | `setup-issue-tracker` | Nothing else |
+| `setup-delivery` | Nothing else; the Codex CLI only to check a Codex reviewer |
 | `brainstorm-to-issue` | `gh` for a GitHub tracker, or your tracker's own tool |
 | `superpowers-issue-bridge` | Superpowers; `gh` for a GitHub tracker |
 | `fetch-issues` | `gh` for a GitHub tracker, or your tracker's own tool |
@@ -280,7 +286,7 @@ repository. Skill names stay the same in both.
 
 | Plugin | Skills |
 | --- | --- |
-| `superpowers-issues` | `setup-issue-tracker`, `brainstorm-to-issue`, `superpowers-issue-bridge`, `fetch-issues`, `implement-issues`, `review-prs`, `answer-pr-reviews` |
+| `superpowers-issues` | `setup-issue-tracker`, `setup-delivery`, `brainstorm-to-issue`, `superpowers-issue-bridge`, `fetch-issues`, `implement-issues`, `review-prs`, `answer-pr-reviews` |
 | `repo-kit` | `setup-agent-md`, `anti-koshary` — each works on any repo with nothing else installed |
 
 ### Claude Code — plugins
@@ -309,7 +315,7 @@ want to work on and pass the checkout's absolute path:
 claude --plugin-dir /absolute/path/to/skills
 ```
 
-That loads all nine skills for the session as one plugin named after the
+That loads all ten skills for the session as one plugin named after the
 directory (`/skills:anti-koshary`). Run `/reload-plugins` after each edit. See
 the [Claude Code plugin guide](https://code.claude.com/docs/en/plugins).
 
@@ -369,6 +375,7 @@ npx skills add ismail9k/skills@fetch-issues
 npx skills add ismail9k/skills@superpowers-issue-bridge
 npx skills add ismail9k/skills@review-prs
 npx skills add ismail9k/skills@answer-pr-reviews
+npx skills add ismail9k/skills@setup-delivery   # optional
 ```
 
 ## Usage
