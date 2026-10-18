@@ -175,19 +175,37 @@ build), dependency — then the waiting and skipped lists.
 Ask before dispatching anything.
 
 1. **Settings.** Print the effort and where it came from, plan approval, and
-   each seat's resolved model on this platform. Check every resolved model
-   against what your platform's dispatch accepts right now — its model
-   options or spawn allowlist. One it doesn't accept stops the run: name the
-   seat, the value, and where it came from. That includes an exact name from
-   another platform, and a tier with no column for this platform.
+   the preset, if there is one. Then print one table of the six agents: each
+   one's provider, model, and source — run, Seats, Agents, Preset, or
+   fallback. List under an agent any of its seats that resolved differently.
+   Mark Implementers and Task reviewers "not used at this effort" at `low`,
+   and PR code reviewer "not used at this effort" below `high`, rather than
+   leaving them out.
+
+   Check every resolved model against what its provider accepts right now —
+   for your platform, its dispatch's model options or spawn allowlist. One it
+   doesn't accept stops the run: name the agent, the seat, the value, and
+   where it came from. That includes an exact name from another platform,
+   and a tier with no column for its provider.
 
    Ask for what the file doesn't settle: the effort, when the run had no
-   argument; plan approval, when the file has no line for it; the
-   implementer's model, when the file doesn't set it — offering the models
-   your dispatch accepts, never a name remembered from elsewhere. If your
-   platform can't set a model per dispatch, say so and use its default for
-   every seat. Then ask whether to use these settings for the run, or
-   override any of them for this run only.
+   argument; plan approval, when the file has no line for it; and the
+   models. With no `docs/agents/delivery.md`, ask the preset first —
+   `budget`, `balanced`, `max`, or "set each agent", which asks all six
+   agents in one question. With a file that leaves the implementer unset,
+   ask for it as before. Offer only the models your dispatch accepts, never a
+   name remembered from elsewhere. If your platform can't set a model per
+   dispatch, say so and use its default for every seat. Then ask whether to
+   use these settings for the run, or override any of them for this run
+   only.
+
+   **Overrides in words.** A run override from the request maps to agents by
+   this vocabulary only: "plans" → Planner; "builds" or "executes" →
+   Implementers; "leads the build" → Build lead; "reviews tasks" → Task
+   reviewers; "reviews" or "reviews the PR" → Review agent; "reviews the
+   code" → PR code reviewer. Print the agents table with "run" as the
+   source of each overridden row; the run starts only after the user confirms
+   the printed table.
 
    When anything was asked, offer to save it to `docs/agents/delivery.md`:
    show the file's diff, and write it only on the user's yes. A run's
@@ -346,8 +364,9 @@ One table: issue, branch, pull request URL or the reason there is none,
 state (waiting on plan approval, ready, or draft and why), checks result
 locally and in CI, review findings by severity with how many were fixed, and
 how many decisions the agents made. Above it, the run's effort and plan
-approval; under it, the model each seat ran on, with token use or time per
-agent where your platform reports them. Then list every issue waiting or
+approval and the preset; under it, each agent with its provider and the
+model each of its seats ran on, with token use or time per agent where the
+provider reports them. Then list every issue waiting or
 skipped in Stage 1, and why.
 
 A pull request with the partial reference leaves its issue open when it
@@ -365,6 +384,9 @@ the user the tracker's Close-by-hand step to run once it merges.
 
 - Don't merge, enable auto-merge, or approve a pull request — marking it
   ready hands it to the user, who accepts the work.
+- Don't read a run override's wording any other way than Stage 2's
+  vocabulary, and don't start before the user confirms the printed agents
+  table.
 - Don't push the base branch, and never force-push.
 - Don't take an agent's report as proof — run the checks yourself before the
   first push, at every effort.

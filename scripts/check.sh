@@ -85,6 +85,10 @@ pt=$(awk '/^ *\| Agent \| budget \| balanced \| max \|$/{f=1;next} f&&/^ *\|/{pr
 if [ "$pt|" = "$AGENTS_6||" ] || [ "$pt" = "$AGENTS_6|" ]; then ok "SKILL.md preset table has the six agents"
 else bad "SKILL.md preset table rows are '$pt'"; fi
 
+for s in "not used at this effort" "set each agent" '"builds" or "executes"' "the run starts only after the user confirms"; do has "$II/SKILL.md" "$s"; done
+s9=$(awk '/^## Stage 9/{f=1;next} /^## /{f=0} f' "$II/SKILL.md")
+case "$s9" in *provider*) ok "Stage 9 reports each provider" ;; *) bad "Stage 9 doesn't mention the provider" ;; esac
+
 # ------------------------------- 4. anti-koshary patterns vs a known-hit fixture
 head_ "anti-koshary security patterns match planted hits"
 REF=skills/anti-koshary/references/security-checks.md
