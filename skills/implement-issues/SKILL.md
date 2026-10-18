@@ -203,7 +203,10 @@ Ask before dispatching anything.
    dispatching anything: `codex --version` succeeds; `codex login status`
    exits 0; `review-prs` is installed for Codex — in the repository's
    `.agents/skills/`, in `~/.agents/skills/`, or in `$CODEX_HOME/skills/`
-   (default `~/.codex/skills/`); and each distinct Codex model the review
+   (default `~/.codex/skills/`); at high effort, when the code pass runs,
+   Superpowers' `requesting-code-review` is installed for Codex the same way
+   and Codex's multi-agent feature is on (`codex features`), so the code pass
+   can run on its own model; and each distinct Codex model the review
    resolves to answers, with exit 0:
 
    ```bash
@@ -211,14 +214,22 @@ Ask before dispatching anything.
    ```
 
    Any failure stops the run: name the agent, the value, and where it came
-   from. A run with no Codex reviewer checks none of this.
+   from. A run with no Codex reviewer checks none of this. Run every check
+   in this step — the Codex ones too — again on the final table, after the
+   questions and overrides below and just before the user confirms, so an
+   answer that turns Codex on is checked before any agent starts.
 
    Ask for what the file doesn't settle: the effort, when the run had no
    argument; plan approval, when the file has no line for it; and the
    models. With no `docs/agents/delivery.md`, ask the preset first —
    `budget`, `balanced`, `max`, or "set each agent", which asks all six
    agents in one question. With a file that leaves the implementer unset,
-   ask for it as before. Offer only the models your dispatch accepts, never a
+   ask for it as before; that answer
+   sets the implementer seat, not the Implementers agent, and doesn't
+   trigger the escalation step-up. When a value resolves through a tier and
+   there is no Tiers column for its provider — always the case with no
+   file — ask for that provider's cheap, standard and strong models in one
+   question, and include them in the save offer. Offer only the models your dispatch accepts, never a
    name remembered from elsewhere. If your platform can't set a model per
    dispatch, say so and use its default for every seat. Then ask whether to
    use these settings for the run, or override any of them for this run
@@ -349,7 +360,9 @@ build lead — to run `review-prs #<number>` on `<owner/repo>`, telling it:
 
 - the user's go-ahead for this run covers posting the review;
 - below high effort, the code pass is off, because the build's whole-branch
-  review already covered the code.
+  review already covered the code;
+- at high effort, the code pass's model: the PR code reviewer's resolved
+  model, which comes first in `review-prs`' own order.
 
 It posts its findings as comments on the pull request and reports the
 review's URL. A review changes nothing locally, so it can run while other
@@ -371,12 +384,14 @@ Codex CLI instead of dispatching an agent:
    Codex model. Run, in the background:
 
    ```bash
-   codex exec -C "<worktree>" -m "<model>" -s read-only --json \
+   codex exec -C "<worktree>" -m "<Review agent's resolved Codex model>" -s read-only --json \
      -o "<context dir>/report.md" - < "<context dir>/brief.md"
    ```
 
 3. When it exits, `report.md` must hold exactly one fenced `json` block.
-   Write it to `review.json` in the same directory and post it:
+   Write it to `review.json` in the same directory, set its `"event": "COMMENT"`
+   whatever it says, and check that its `commit_id` is `pr.json`'s `headRefOid`
+   — a different commit posts nothing. Then post it:
    `gh api --method POST repos/<owner>/<repo>/pulls/<number>/reviews --input <context dir>/review.json`.
    Read the review's URL from the response.
 4. No block, more than one, a non-zero exit, or a failed post: post

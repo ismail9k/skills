@@ -96,7 +96,7 @@ first model of these that your platform's dispatch accepts: the one your
 dispatch named, as `implement-issues` does; else, from
 `docs/agents/delivery.md` when it exists, the `pr-code-reviewer` Seats row,
 then the `PR code reviewer` Agents row, then the Preset's PR code reviewer
-tier — a tier looked up in its Tiers table for this platform; else the most
+tier — a preset sets the PR code reviewer to `standard` for budget and `strong` for balanced and max — a tier looked up in its Tiers table for this platform; else the most
 capable model your platform offers. When the file names a model that doesn't
 resolve, use the most capable model and say so in the report; never stop
 over it. Reviews change nothing, so dispatch the reviewers for several pull
@@ -170,7 +170,8 @@ comments.
 ## Stage 5 — Report
 
 In report-only mode, the report is the dropped findings after the `json`
-block, and nothing else.
+block, and one line naming the model the code pass ran on — or that it ran
+inline, or was off.
 
 One table: pull request, linked issue, findings posted by severity, and the
 review's URL. Then list the findings dropped in the check step, and why.

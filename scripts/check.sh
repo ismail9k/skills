@@ -114,6 +114,11 @@ grep -q "Implementers and Task reviewers \"not used at this effort\"" "$II/SKILL
   || ok "Task reviewers stay in use at low (final review)"
 has "$II/SKILL.md" "final review only"
 
+# final review fixes
+for s in "ask for that provider's cheap, standard and strong models" "again on the final table" "sets the implementer seat, not the Implementers agent" "the code pass's model" "multi-agent" "<Review agent's resolved Codex model>" 'commit_id` is `pr.json`'"'"'s `headRefOid`' '"event": "COMMENT"'; do has "$II/SKILL.md" "$s"; done
+for s in "the model the code pass ran on" 'a preset sets the PR code reviewer to `standard` for budget and `strong` for balanced and max'; do has "$RP" "$s"; done
+grep -q "^  | PR code reviewer | standard | strong | strong |$" "$II/SKILL.md" && ok "preset PR code reviewer row matches review-prs' inline line" || bad "preset PR code reviewer row changed — update review-prs' inline line too"
+
 # ------------------------------- 4. anti-koshary patterns vs a known-hit fixture
 head_ "anti-koshary security patterns match planted hits"
 REF=skills/anti-koshary/references/security-checks.md
